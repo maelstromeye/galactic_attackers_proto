@@ -16,6 +16,7 @@ class Model
         for (int i = 0; i < 10; i++)
         {
             enemies[i] = new SmallFry();
+            enemies[i].setx(25+i*50);
         }
     }
     public int[][] getPositions()
@@ -31,7 +32,7 @@ class Model
     }
     public void movement(int i)
     {
-        for(SmallFry fry:enemies) fry.movement(i, 500);
+        for(SmallFry fry:enemies) fry.movement(i, SIZE);
     }
     class Ship
     {
@@ -62,6 +63,8 @@ class Model
         public int getx() {return crdx;}
         public int gety() {return crdy;}
         public int getr() {return radius;}
+        public void setx(int x) {crdx=x;}
+        public void sety(int y) {crdy=y;}
         public void movement(int m, int limit)
         {
             if(direction==true) crdx+=m*velocity;
@@ -78,6 +81,17 @@ class Model
             radius=25;
             health=1;
             weight=0.1;
+            velocity=1;
+        }
+        public void movement(int m, int limit)
+        {
+            if(direction==true) crdx+=m*velocity;
+            else crdx-=m*velocity;
+            if ((crdx-radius==0)||(crdx+radius==limit))
+            {
+                direction=(!direction);
+                crdy+=50;
+            }
         }
     }
 }

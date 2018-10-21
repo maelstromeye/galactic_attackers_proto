@@ -5,10 +5,10 @@ class Controller
     private View view;
     private Model model;
     private GameLoop game;
-    Controller(View pic, Model dat)
+    Controller(View view, Model model)
     {
-        view=pic;
-        model=dat;
+        this.view=view;
+        this.model=model;
         game=new GameLoop();
     }
     public void start()
@@ -17,8 +17,8 @@ class Controller
     }
     public static void main(String args[])
     {
-        View view=new View(500);
-        Model model=new Model(500);
+        View view=new View(800);
+        Model model=new Model(800);
         Controller controller=new Controller(view, model);
         controller.start();
         System.out.println("Galactic Attackers");
@@ -39,7 +39,7 @@ class Controller
             }
             catch(InterruptedException e)
             {
-
+                e.printStackTrace();
             }
 
         }
