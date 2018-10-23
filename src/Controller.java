@@ -6,7 +6,7 @@ class Controller
     private View view;
     private Model model;
     private GameLoop game;
-    public static final int SIZE=500;
+    public static final int SIZE=700;
     Controller(View view, Model model)
     {
         this.view=view;
@@ -37,7 +37,7 @@ class Controller
                 {
                     model.movement(1);
                     model.fire();
-                    view.load(model.getPositions());
+                    view.load(model.hit());
                     view.append(model.getMissiles());
                     view.repaint();
                     this.sleep(10);
@@ -54,13 +54,9 @@ class Controller
     {
         public void keyPressed(KeyEvent e)
         {
-            if (e.getKeyCode() == KeyEvent.VK_LEFT)
-            {
-                System.out.println("lol");
-                model.moveship(-1,1);
-            }
-            else if (e.getKeyCode() == KeyEvent.VK_RIGHT) model.moveship(1,1);
-            else if (e.getKeyCode() == KeyEvent.VK_SPACE) model.shoot();
+            if (e.getKeyCode() == KeyEvent.VK_LEFT) model.moveship(-1,1);
+            if (e.getKeyCode() == KeyEvent.VK_RIGHT) model.moveship(1,1);
+            if (e.getKeyCode() == KeyEvent.VK_SPACE) model.shoot();
         }
         public void keyReleased(KeyEvent e)
         {

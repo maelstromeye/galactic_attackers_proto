@@ -71,15 +71,15 @@ class View extends JPanel
             {
                 if(positions[i][3]==1)
                 {
-                    g.drawImage(sprite1, positions[i][0], positions[i][1],this);
+                    g.drawImage(sprite1, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
                 }
                 else if(positions[i][3]==2)
                 {
-                    g.drawImage(sprite2, positions[i][0], positions[i][1],this);
+                    g.drawImage(sprite2, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
                 }
-                else if(positions[i][3]==0)
+                else if(positions[i][3]==100)
                 {
-                    g.drawImage(sprite0, positions[i][0], positions[i][1],this);
+                    g.drawImage(sprite0, positions[i][0]-positions[i][2]-1, positions[i][1],this);
                 }
                 else if(positions[i][3]==-1)
                 {
