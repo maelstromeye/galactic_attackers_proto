@@ -36,6 +36,7 @@ class Controller
                 while (true)
                 {
                     model.movement(1);
+                    model.fire();
                     view.load(model.getPositions());
                     view.append(model.getMissiles());
                     view.repaint();
@@ -59,7 +60,7 @@ class Controller
                 model.moveship(-1,1);
             }
             else if (e.getKeyCode() == KeyEvent.VK_RIGHT) model.moveship(1,1);
-            else if (e.getKeyCode() == KeyEvent.VK_SPACE);
+            else if (e.getKeyCode() == KeyEvent.VK_SPACE) model.shoot();
         }
         public void keyReleased(KeyEvent e)
         {
@@ -67,13 +68,7 @@ class Controller
         }
         public void keyTyped(KeyEvent e)
         {
-            if (e.getKeyCode() == KeyEvent.VK_LEFT)
-            {
-                System.out.println("lol");
-                model.moveship(-1,1);
-            }
-            else if (e.getKeyCode() == KeyEvent.VK_RIGHT) model.moveship(1,1);
-            else if (e.getKeyCode() == KeyEvent.VK_SPACE) model.shootship();
+
         }
     }
 }

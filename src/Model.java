@@ -74,8 +74,12 @@ class Model
             run.movement(i);
         }
     }
+    public void fire()
+    {
+        ship.fire();
+    }
     public void moveship(int j, int i) {ship.movement(j,i);}
-    public void shootship() {ship.shoot();}
+    public void shoot() {ship.shoot();}
     class Ship
     {
         private int radius;
@@ -106,6 +110,16 @@ class Model
         }
         public void movement(int j, int i)
         {
+            if (j==-1) velocity=-5;
+            else if (j==1) velocity=5;
+            else if (j==2) shot++;
+            else if (j==0) velocity=0;
+            if((velocity==-1)&&(crdx<=radius)) return;
+            else if((velocity==1)&&(crdx>=Controller.SIZE)) return;
+            else crdx+=velocity*i;
+        }
+        public void fire()
+        {
             if(shot!=0)
             {
                 for (int k = 0; k < rockets.length; k++)
@@ -118,18 +132,11 @@ class Model
                     }
                 }
             }
-            if (j==-1) velocity=-5;
-            else if (j==1) velocity=5;
-            else if (j==2) shot++;
-            else if (j==0) velocity=0;
-            if((velocity==-1)&&(crdx<=radius)) return;
-            else if((velocity==1)&&(crdx>=Controller.SIZE)) return;
-            else crdx+=velocity*i;
         }
         public void shoot()
         {
             if(shot==3) return;
-            rockets[shot]=new Missile(3*radius+1);
+            rockets[shot]=new Missile(crdx,Controller.SIZE-3*radius+1, false);
             shot++;
         }
     }
@@ -139,12 +146,12 @@ class Model
         private int crdy;
         private boolean hostile;
         private int velocity;
-        Missile(int y)
+        Missile(int x, int y, boolean b)
         {
-            crdx=Controller.SIZE;
+            crdx=x;
             crdy=y;
-            hostile=false;
-            velocity=1;
+            hostile=b;
+            velocity=8;
         }
         public void movement(int i)
         {
