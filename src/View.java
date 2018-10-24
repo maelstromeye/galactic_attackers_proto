@@ -28,6 +28,7 @@ class View extends JPanel
             e.printStackTrace();
         }
     }
+    public void dowin() {System.out.println("Good Job");}
     public void load(int[][] arr)
     {
         if(arr==null) return;

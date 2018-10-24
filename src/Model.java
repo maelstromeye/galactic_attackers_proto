@@ -1,5 +1,4 @@
-import java.awt.event.KeyEvent;
-import java.lang.StrictMath;
+
 import java.util.List;
 import java.util.Vector;
 
@@ -8,55 +7,66 @@ class Model
     private int difficulty;
     private int lives;
     private Ship ship;
-    List list;
-    private SmallFry[] enemies;
-    private Runner[] hostiles;
+    private int smallfries;
+    private int runners;
+    private static int[] seed;
+    List<Attacker> list;
     Model()
     {
         list=new Vector();
-        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////list.add(new Runner());
         lives=3;
         difficulty=1;
+        smallfries=0;
+        runners=0;
+        Runner.weight=0.2;
+        SmallFry.weight=0.1;
         ship=new Ship();
-        enemies=new SmallFry[10];
-        hostiles=new Runner[10];
+        seed=new int[10];
+        seed[0]=(int)(Math.random()*32)+32;
+        seed[1]=(int)(Math.random()*seed[0])+seed[0]/2;
+        seed[2]=(int)((Math.random()*Math.abs(seed[1]-seed[0]))+((seed[0]>seed[1])?seed[1]:seed[0]));
         this.generator();
     }
     public void generator()
     {
-        for (int i = 0; i < 10; i++)
+        double k=(double)seed[2]/(double)seed[0]*(difficulty%4+1)/2.5;
+        runners= (int) (Math.sqrt(difficulty)/(Runner.weight+(k*SmallFry.weight)));
+        smallfries= (int) (runners*k);
+        System.out.println(k);
+        System.out.println(seed[0]);
+        System.out.println(seed[1]);
+        System.out.println(seed[2]);
+        System.out.println(runners);
+        System.out.println(smallfries);
+        for (int i=0; i<smallfries; i++)
         {
-            enemies[i] = new SmallFry();
-            enemies[i].setx(25+i*50);
-            enemies[i].setlr(Controller.SIZE-3*enemies[i].getr()+i*50);
-            enemies[i].setll(i*50);
-            hostiles[i]=new Runner();
-            hostiles[i].setx(25+i*50);
-            hostiles[i].setlr(Controller.SIZE-3*hostiles[i].getr()+i*50);
-            hostiles[i].setll(i*50);
+            list.add(new SmallFry());
+            list.get(i).setx(25+i*50);
+            list.get(i).setlr(Controller.SIZE-3*list.get(i).getr()+i*50);
+            list.get(i).setll(i*50);
+        }
+        for (int i=0; i<runners; i++)
+        {
+            list.add(new Runner());
+            list.get(i+smallfries).setx(25+i*50);
+            list.get(i+smallfries).setlr(Controller.SIZE-3*list.get(i+smallfries).getr()+i*50);
+            list.get(i+smallfries).setll(i*50);
         }
     }
     public int[][] getPositions()
     {
-        int[][] data=new int[enemies.length+hostiles.length+1][4];
-        for(int i=0; i<enemies.length; i++)
+        int[][] data=new int[runners+smallfries+1][4];
+        for(int i=0; i<smallfries+runners; i++)
         {
-            data[i][0]=enemies[i].getx();
-            data[i][1]=enemies[i].gety();
-            data[i][2]=enemies[i].getr();
-            data[i][3]=enemies[i].gets();
+            data[i][0]=list.get(i).getx();
+            data[i][1]=list.get(i).gety();
+            data[i][2]=list.get(i).getr();
+            data[i][3]=list.get(i).gets();
         }
-        for(int i=0; i<hostiles.length; i++)
-        {
-            data[i+enemies.length][0]=hostiles[i].getx();
-            data[i+enemies.length][1]=hostiles[i].gety();
-            data[i+enemies.length][2]=hostiles[i].getr();
-            data[i+enemies.length][3]=hostiles[i].gets();
-        }
-        data[enemies.length+hostiles.length][0]=ship.getx();
-        data[enemies.length+hostiles.length][1]=(Controller.SIZE-3*ship.getr());
-        data[enemies.length+hostiles.length][2]=ship.getr();
-        data[enemies.length+hostiles.length][3]=100;
+        data[smallfries+runners][0]=ship.getx();
+        data[smallfries+runners][1]=(Controller.SIZE-3*ship.getr());
+        data[smallfries+runners][2]=ship.getr();
+        data[smallfries+runners][3]=100;
         return data;
     }
     public int[][] getMissiles()
@@ -71,124 +81,49 @@ class Model
     }
     public void movement(int i)
     {
-        for(SmallFry fry:enemies)
+        for(int j=0;j<smallfries+runners;j++) {list.get(j).movement(i);}
+    }
+    public boolean checkwin()
+    {
+        if(list.isEmpty()==true)
         {
-            fry.movement(i);
+            difficulty++;
+            ship.reload();
+            this.generator();
+            return true;
         }
-        for(Runner run:hostiles)
-        {
-            run.movement(i);
-        }
+        else return false;
     }
     public int[][] hit()
     {
-        int j = 0;
-        int k=0;
-        int[][] data = getPositions();
-        int[][] rockets = getMissiles();
-        double dist = 0;
-        if (rockets == null) return data;
-        for (int i = 0; i < data.length-1-k; i++)
+        int[][] rockets=getMissiles();
+        if (rockets==null) return getPositions();
+        double dist=0;
+        int x, y, r;
+        for (int i = 0; i<runners+smallfries; i++)
         {
-            if(rockets[0]==null)   break;
-            dist = ((data[i][0] - rockets[0][0])*(data[i][0] - rockets[0][0]) + (data[i][1] - rockets[0][1])*(data[i][1] - rockets[0][1]));
-            dist = Math.sqrt(dist);
-            if (dist <= data[i][2])
+            if(rockets[0]==null) break;
+            x=list.get(i).getx();
+            y=list.get(i).gety();
+            r=list.get(i).getr();
+            for(int j=0;j<rockets.length;j++)
             {
-                kill(i);
-                ship.shotdown(0);
-                for (j = i; j< data.length-k-1; j++)
+                dist=Math.sqrt(((x-rockets[j][0])*(x-rockets[j][0])+(y-rockets[j][1])*(y-rockets[j][1])));
+                if (dist<=r)
                 {
-                    data[j] = data[j + 1];
-                }
-                data[j] = null;
-                for (j = 0; j< rockets.length-k-1; j++)
-                {
-                    rockets[j] = rockets[j + 1];
-                }
-                rockets[j] = null;
-                k++;
-                continue;
-            }
-            if (rockets.length-k>= 2) {
-                dist = (double) ((data[i][0] - rockets[1][0])*(data[i][0] - rockets[1][0]) + (data[i][1] - rockets[1][1])*(data[i][1] - rockets[1][1]));
-                dist = Math.sqrt(dist);
-                if (dist <= data[i][2])
-                {
-                    kill(i);
-                    ship.shotdown(1);
-                    for (j = i; j< data.length-k-1; j++)
+                    list.get(i).hit();
+                    if(list.get(i).isgone()==true)
                     {
-                        data[j] = data[j + 1];
+                        list.remove(i);
+                        if (i>=smallfries) runners--;
+                        else smallfries--;
                     }
-                    data[j] = null;
-                    for (j = 1; j< rockets.length-k-1; j++)
-                    {
-                        rockets[j] = rockets[j + 1];
-                    }
-                    rockets[j] = null;
-                    k++;
-                    continue;
-                }
-            }
-            if(rockets.length-k>=3)
-            {
-                dist = (double) ((data[i][0] - rockets[2][0])*(data[i][0] - rockets[2][0]) + (data[i][1] - rockets[2][1])*(data[i][1] - rockets[2][1]));
-                dist = Math.sqrt(dist);
-                if (dist <= data[i][2])
-                {
-                    kill(i);
-                    ship.shotdown(2);
-                    for (j = i; j< data.length-k-2; j++)
-                    {
-                        data[j] = data[j + 1];
-                    }
-                    data[j] = null;
-                    rockets[2] = null;
-                    k++;
+                    ship.shotdown(j);
                     continue;
                 }
             }
         }
-        int[][] refined=new int[data.length-k][4];
-        for(j=0;j<refined.length-k;j++) refined[j]=data[j];
-        return refined;
-    }
-    public void kill(int i)
-    {
-        int j=0;
-        if(i>=enemies.length+hostiles.length) return;
-        if(i>=enemies.length)
-        {
-            i-=enemies.length;
-            hostiles[i].hit();
-            if(hostiles[i].isgone()==true)
-            {
-                for(j=i;j+1<hostiles.length;j++)
-                {
-                    hostiles[j]=hostiles[j+1];
-                }
-                hostiles[j]=null;
-                Runner[] data=hostiles;
-                hostiles=new Runner[data.length-1];
-                for(j=0;j<data.length-1;j++) hostiles[j]=data[j];
-            }
-        }
-        else
-        {
-            enemies[i].hit();
-            if(enemies[i].isgone()==false)
-            {
-                for(j=i;j+1<enemies.length;j++)
-                {
-                    enemies[j]=enemies[j+1];
-                }
-                enemies[j]=null;
-                SmallFry[] data=enemies;
-                enemies=new SmallFry[data.length-1];
-                for(j=0;j<data.length-1;j++) enemies[j]=data[j];
-            }
-        }
+        return getPositions();
     }
     public void fire() {ship.fire();}
     public void moveship(int j, int i) {ship.movement(j,i);}
@@ -211,6 +146,7 @@ class Model
         public int getx() {return crdx;}
         public int getr() {return radius;}
         public int gets() {return  shot;}
+        public void reload() {rockets=new Missile[3]; shot=0;}
         public int[] extract(int k)
         {
             if((shot==0)||(k>=shot)) return null;
@@ -224,20 +160,21 @@ class Model
         public void shotdown(int i)
         {
             if(i>=3) return;
-            int j=0;
+            int j;
             for(j=i;j+1<rockets.length;j++)
             {
                 rockets[j]=rockets[j+1];
             }
             rockets[j]=null;
             Missile[] data=rockets;
-            for(j=0;j<rockets.length-1;j++) rockets[j]=data[j];
+            rockets=new Missile[3];
+            for(j=0;j<3;j++) rockets[j]=data[j];
             shot--;
         }
         public void movement(int j, int i)
         {
-            if (j==-1) velocity=-5;
-            else if (j==1) velocity=5;
+            if (j==-1) velocity=-8;
+            else if (j==1) velocity=8;
             else if (j==2) shot++;
             else if (j==0) velocity=0;
             if((velocity==-1)&&(crdx<=radius)) return;
@@ -298,14 +235,13 @@ class Model
         public int getx() {return crdx;}
         public int gety() {return crdy;}
     }
-    abstract class Attacker
+    abstract static class Attacker
     {
         protected int spritenum;
         protected int crdx;
         protected int crdy;
         protected int radius;
         protected int health;
-        protected double weight;
         protected int velocity;
         protected boolean direction;
         protected int limitr;
@@ -317,7 +253,6 @@ class Model
             crdy=25;
             radius=25;
             health=1;
-            weight=0;
             velocity=1;
             limitr=100;
             limitl=0;
@@ -328,6 +263,7 @@ class Model
         public int getr() {return radius;}
         public int getlr() {return limitr;}
         public int getll() {return limitl;}
+        //public double getw() {return weight;}
         public int gets() {return spritenum;}
         public void setx(int x) {crdx=x;}
         public void sety(int y) {crdy=y;}
@@ -336,7 +272,7 @@ class Model
         public void hit() {health--;}
         public boolean isgone()
         {
-            if(health>=0) return false;
+            if(health>0) return false;
             return true;
         }
         public void movement(int m)
@@ -346,15 +282,16 @@ class Model
             if ((crdx-radius<=limitl)||(crdx+radius>=limitr)) direction=(!direction);
         }
     }
-    class SmallFry extends Attacker
+    static class SmallFry extends Attacker
     {
+        public static double weight;
         SmallFry()
         {
             spritenum=1;
             crdx=25;
             crdy=25;
             radius=25;
-            health=2;
+            health=1;
             weight=0.1;
             velocity=1;
             limitr=100;
@@ -371,16 +308,17 @@ class Model
             }
         }
     }
-    class Runner extends Attacker
+    static class Runner extends Attacker
     {
+        public static double weight;
         Runner()
         {
             spritenum=2;
             crdx=25;
             crdy=100;
             radius=25;
-            health=2;
-            weight=0.5;
+            health=1;
+            weight=0.2;
             velocity=2;
             limitr=100;
             limitl=0;

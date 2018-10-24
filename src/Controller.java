@@ -14,10 +14,7 @@ class Controller
         game=new GameLoop();
         view.addKeyListener(new Keyboard());
     }
-    public void start()
-    {
-        game.run();
-    }
+    public void start() {game.run();}
     public static void main(String args[])
     {
         View view=new View();
@@ -28,7 +25,6 @@ class Controller
     }
     class GameLoop extends Thread
     {
-        private Keyboard keyboard=new Keyboard();
         public void run()
         {
             try
@@ -40,6 +36,7 @@ class Controller
                     view.load(model.hit());
                     view.append(model.getMissiles());
                     view.repaint();
+                    if(model.checkwin()==true) view.dowin();
                     this.sleep(10);
                 }
             }
@@ -54,17 +51,11 @@ class Controller
     {
         public void keyPressed(KeyEvent e)
         {
-            if (e.getKeyCode() == KeyEvent.VK_LEFT) model.moveship(-1,1);
-            if (e.getKeyCode() == KeyEvent.VK_RIGHT) model.moveship(1,1);
-            if (e.getKeyCode() == KeyEvent.VK_SPACE) model.shoot();
+            if (e.getKeyCode()==KeyEvent.VK_LEFT) model.moveship(-1,1);
+            if (e.getKeyCode()==KeyEvent.VK_RIGHT) model.moveship(1,1);
+            if (e.getKeyCode()==KeyEvent.VK_SPACE) model.shoot();
         }
-        public void keyReleased(KeyEvent e)
-        {
-            model.moveship(0,1);
-        }
-        public void keyTyped(KeyEvent e)
-        {
-
-        }
+        public void keyReleased(KeyEvent e) {model.moveship(0,1);}
+        public void keyTyped(KeyEvent e) {}
     }
 }
