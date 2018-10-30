@@ -7,6 +7,7 @@ class View extends JPanel
     private Image sprite0;
     private Image sprite1;
     private Image sprite2;
+    private Image sprite3;
     private int[][] positions;
     View()
     {
@@ -22,6 +23,7 @@ class View extends JPanel
             sprite0 = ImageIO.read(new File("resources/Sprite0.png"));
             sprite1 = ImageIO.read(new File("resources/Sprite1.png"));
             sprite2 = ImageIO.read(new File("resources/Sprite2.png"));
+            sprite3 = ImageIO.read(new File("resources/Sprite3.png"));
         }
         catch(IOException e)
         {
@@ -78,6 +80,10 @@ class View extends JPanel
                 {
                     g.drawImage(sprite2, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
                 }
+                else if(positions[i][3]==3)
+                {
+                    g.drawImage(sprite3, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
+                }
                 else if(positions[i][3]==100)
                 {
                     g.drawImage(sprite0, positions[i][0]-positions[i][2]-1, positions[i][1],this);
@@ -85,6 +91,11 @@ class View extends JPanel
                 else if(positions[i][3]==-1)
                 {
                     g2d.setColor(Color.MAGENTA);
+                    g.fillOval(positions[i][0], positions[i][1], 5,5);
+                }
+                else if(positions[i][3]==-2)
+                {
+                    g2d.setColor(Color.GREEN);
                     g.fillOval(positions[i][0], positions[i][1], 5,5);
                 }
             }

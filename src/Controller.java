@@ -32,9 +32,10 @@ class Controller
                 while (true)
                 {
                     model.movement(1);
-                    model.fire();
-                    view.load(model.hit());
+                    model.hit();
+                    view.load(model.getPositions());
                     view.append(model.getMissiles());
+                    view.append(model.getRockets());
                     view.repaint();
                     if(model.checkwin()==true) view.dowin();
                     this.sleep(10);
@@ -54,6 +55,8 @@ class Controller
             if (e.getKeyCode()==KeyEvent.VK_LEFT) model.moveship(-1,1);
             if (e.getKeyCode()==KeyEvent.VK_RIGHT) model.moveship(1,1);
             if (e.getKeyCode()==KeyEvent.VK_SPACE) model.shoot();
+            if (e.getKeyCode()==KeyEvent.VK_DOWN) model.pause();
+            if (e.getKeyCode()==KeyEvent.VK_UP) model.skip();
         }
         public void keyReleased(KeyEvent e) {model.moveship(0,1);}
         public void keyTyped(KeyEvent e) {}
