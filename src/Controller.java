@@ -6,7 +6,7 @@ class Controller
     private View view;
     private Model model;
     private GameLoop game;
-    public static final int SIZE=700;
+    public static final int SIZE=1000;
     Controller(View view, Model model)
     {
         this.view=view;
@@ -36,6 +36,7 @@ class Controller
                     view.load(model.getPositions());
                     view.append(model.getMissiles());
                     view.append(model.getRockets());
+                    view.append(model.getfree());
                     view.repaint();
                     if(model.checkwin()==true) view.dowin();
                     this.sleep(10);

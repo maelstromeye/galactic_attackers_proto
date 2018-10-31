@@ -95,7 +95,7 @@ class View extends JPanel
                 }
                 else if(positions[i][3]==-2)
                 {
-                    g2d.setColor(Color.GREEN);
+                    g2d.setColor(Color.BLACK);
                     g.fillOval(positions[i][0], positions[i][1], 5,5);
                 }
             }
