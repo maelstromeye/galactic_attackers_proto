@@ -53,13 +53,13 @@ class Controller
     {
         public void keyPressed(KeyEvent e)
         {
-            if (e.getKeyCode()==KeyEvent.VK_LEFT) model.moveship(-1,1);
+            if (e.getKeyCode()==KeyEvent.VK_LEFT) model.moveship(1,-1);
             if (e.getKeyCode()==KeyEvent.VK_RIGHT) model.moveship(1,1);
             if (e.getKeyCode()==KeyEvent.VK_SPACE) model.shoot();
             if (e.getKeyCode()==KeyEvent.VK_DOWN) model.pause();
             if (e.getKeyCode()==KeyEvent.VK_UP) model.skip();
         }
-        public void keyReleased(KeyEvent e) {model.moveship(0,1);}
+        public void keyReleased(KeyEvent e) {model.moveship(1,0);}
         public void keyTyped(KeyEvent e) {}
     }
 }

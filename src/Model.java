@@ -173,7 +173,11 @@ class Model
                 else m.movement(1);
             }
         }
-        if(ship!=null) ship.fire(1);
+        if(ship!=null)
+        {
+            ship.fire(1);
+            ship.movement(1,3);
+        }
     }
     public boolean checkwin()
     {
@@ -275,7 +279,7 @@ class Model
         return data;
     }
     public void pause() {pause=!pause; if(ship==null) ship=new Ship();}
-    public void moveship(int j, int i) {if(pause==true) return; else if(ship!=null) ship.movement(j,i);}
+    public void moveship(int i, int j) {if(pause==true) return; else if(ship!=null) ship.movement(i, j);}
     public void shoot() {if(pause==true) pause(); else if(ship!=null) ship.shoot();}
     public int sumrock() {int i=0; for(Attacker a:list) i+=a.gets(); return i;}
     static class Ship
@@ -285,6 +289,7 @@ class Model
         private Missile[] rockets;
         private int shot;
         private int velocity;
+        private int counter;
         public static int HEIGHT;
         static {HEIGHT=Controller.SIZE-75;}
         Ship()
@@ -294,6 +299,7 @@ class Model
             shot=0;
             velocity=0;
             rockets=new Missile[3];
+            counter=0;
         }
         public int getx() {return crdx;}
         public int getr() {return radius;}
@@ -318,14 +324,15 @@ class Model
             for(j=0;j<3;j++) rockets[j]=data[j];
             shot--;
         }
-        public void movement(int j, int i)
+        public void movement(int i, int j)
         {
             if (j==-1) velocity=-8;
-            else if (j==1) velocity=8;
-            else if (j==2) shot++;
-            else if (j==0) velocity=0;
-            if((velocity==-1)&&(crdx<=radius)) return;
-            else if((velocity==1)&&(crdx>=Controller.SIZE)) return;
+            else if(j==1) velocity=8;
+            //else if(j==2) shot++;
+            else if(j==0) {if(counter>=100) velocity=0;}
+            else if(j==3) counter++;
+            if((velocity<=0)&&(crdx<=radius)) return;
+            else if((velocity>=0)&&(crdx>=Controller.SIZE*2)) return;
             else crdx+=velocity*i;
         }
         public void fire(int i)
@@ -359,6 +366,7 @@ class Model
             if(shot==3) return;
             rockets[shot]=new Missile(crdx,HEIGHT+1, false);
             shot++;
+            movement(1, 4);
         }
     }
     static class Missile
