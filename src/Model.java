@@ -330,7 +330,7 @@ class Model
     {
         private int radius;
         private int crdx;
-        private Missile[] rockets;
+        private List<Missile> rockets;
         private int shot;
         private int velocity;
         private int counter;
@@ -345,7 +345,7 @@ class Model
             radius=10;
             shot=0;
             velocity=0;
-            rockets=new Missile[3];
+            rockets=new Vector();
             counter=0;
             left=false;
             right=false;
@@ -353,24 +353,16 @@ class Model
         public int getx() {return crdx;}
         public int getr() {return radius;}
         public int gets() {return  shot;}
-        public void reload() {rockets=new Missile[3]; shot=0;}
+        public void reload() {rockets.clear(); shot=0;}
         public Missile extract(int k)
         {
             if((shot==0)||(k>=shot)) return null;
-            return rockets[k];
+            return rockets.get(k);
         }
         public void shotdown(int i)
         {
-            if(i>=3) return;
-            int j;
-            for(j=i;j+1<rockets.length;j++)
-            {
-                rockets[j]=rockets[j+1];
-            }
-            rockets[j]=null;
-            Missile[] data=rockets;
-            rockets=new Missile[3];
-            for(j=0;j<3;j++) rockets[j]=data[j];
+            if(i>=shot) return;
+            rockets.remove(i);
             shot--;
         }
         public void movement(int i, int j)
@@ -421,40 +413,32 @@ class Model
         {
             if(shot!=0)
             {
-                for (int k = 0; k < shot; k++) {rockets[k].movement(i); }
-                if (rockets[0].gety() <= 0)
+                for (int k=0; k<shot; k++)
                 {
-                    if(rockets[1]!=null)
+                    rockets.get(k).movement(i);
+                    if(rockets.get(k).gety()<=0)
                     {
-                        if(rockets[2]!=null)
-                        {
-                            rockets[0] = rockets[1];
-                            rockets[1] = rockets[2];
-                            rockets[2] = null;
-                        }
-                        else
-                        {
-                            rockets[0]=rockets[1];
-                            rockets[1]=null;
-                        }
+                        rockets.remove(k);
+                        shot--;
+                        continue;
                     }
-                    else rockets[0]=null;
-                    shot--;
                 }
             }
         }
         public void shoot(int i)
         {
-            if(i==1) counter=1;
+            if(i==1) if(counter%40==0) counter=1;
             else if(i==0)
             {
                 counter=0;
                 return;
             }
-            if(shot==3) return;
-            if(counter%20==1)
+            //if(shot==3) return;
+            memory=i;
+            if(counter%40==1)
             {
-                rockets[shot] = new Missile(crdx, HEIGHT + 1, false);
+                rockets.add(new Missile(crdx, HEIGHT + 1, false));
+                counter++;
                 shot++;
             }
         }
