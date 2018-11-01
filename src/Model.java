@@ -1,5 +1,5 @@
-import java.util.List;
-import java.util.Vector;
+import java.util.*;
+import java.util.zip.CheckedOutputStream;
 
 class Model
 {
@@ -8,9 +8,10 @@ class Model
     private int lives;
     private Ship ship;
     private double[] seed;
-    private List<Attacker> list;
+    private static List<Attacker> list;
     private double modifier;
     private List<Missile> freemiss;
+    private static List<Attacker> queue;
     Model()
     {
         pause=false;
@@ -21,52 +22,62 @@ class Model
         SmallFry.weight=0.1;
         ship=new Ship();
         seed=new double[10];
-        seed[0]=randfrom(32,64);
-        seed[1]=randfrom((double) seed[0]/2, (double) seed[0]);
+        seed[0]=randfrom(128,256);
+        seed[1]=randfrom(seed[0]/2, seed[0]);
         //seed[9]=randfrom((seed[0]>seed[9])?(double)seed[9]:(double)seed[0], (seed[0]>seed[9])?(double)seed[0]:(double)seed[9]);
-        seed[2]=randfrom((double) seed[0]/8, (double) seed[0]/4);
+        seed[2]=randfrom(seed[0]/8, seed[0]/4);
+        seed[3]=randfrom(seed[0]/12, seed[0]/8);
+        seed[4]=randfrom(seed[0]/16, seed[0]/12);
         seed[9]=randfrom(seed[0]+1, 2*seed[0]+1);
         //seed[9]=randfrom((double)seed[9], (double)seed[0]);
-        modifier=seed[0]/seed[1]/seed[2];
+        modifier=seed[0]/seed[1]/seed[2]*107/109;
+        if(modifier>0.2) modifier=modifier/2;
         generator();
         freemiss=null;
+        queue=new Vector();
     }
     private int randfrom(double min, double max) {return (int) ((Math.random()*Math.abs(max-min))+((min<=max)?min:max));}
     public void generator() {
-        int y, x, smallfries, runners, abnormals;
+        int y, x, smallfries, runners, abnormals, thiccboyes, hivewitches;
         int[] quantity = new int[10];
-        int rows = 0;
-        smallfries = (int) (Math.sqrt(2*difficulty) / (SmallFry.weight + seed[1] / seed[0] * Runner.weight + seed[2] / seed[0] * Abnormal.weight));
+        int rows;
+        smallfries = (int) (Math.sqrt(2 * difficulty) / (SmallFry.weight + seed[1] / seed[0] * Runner.weight + seed[2] / seed[0] * Abnormal.weight + seed[3] / seed[0] * Thiccboy.weight + seed[4]/seed[0]*Hivewitch.weight));
         runners = (int) (seed[1] / seed[0] * smallfries);
         abnormals = (int) (seed[2] / seed[0] * smallfries);
+        thiccboyes = (int) (seed[3] / seed[0] * smallfries);
+        hivewitches= (int) (seed[4]/seed[0]*smallfries);
         System.out.println(seed[0]);
         System.out.println(seed[1]);
         System.out.println(seed[2]);
-        System.out.println(abnormals);
-        System.out.println(runners);
-        System.out.println(smallfries);
-        rows=runners/10+1;
-        for(int j=0;j<rows;j++) quantity[j]=runners/rows;
-        for(int j=0;j<runners%rows;j++) quantity[j]++;
-        for(int j=0; j<rows;j++)
+        System.out.println(seed[3]);
+        if (runners > 0)
         {
-            x=Controller.SIZE-quantity[j]*Runner.radius;
-            y=j*Runner.radius+25;
-            for (int i = 0; i < quantity[j]; i++)
+            rows=runners/10+1;
+            for(int j=0;j<rows;j++) quantity[j]=runners/rows;
+            for(int j=0;j<runners%rows;j++) quantity[j]++;
+            for(int j=0; j<rows;j++)
             {
-                list.add(new Runner(x+i*Runner.radius*2, y, x-5*Runner.radius+i*Runner.radius*2, x+i*Runner.radius*2+5*Runner.radius));
+                x=Controller.SIZE-quantity[j]*Runner.radius;
+                y=j*Runner.radius+25;
+                for (int i = 0; i < quantity[j]; i++)
+                {
+                    list.add(new Runner(x+i*Runner.radius*2, y, x-5*Runner.radius+i*Runner.radius*2, x+i*Runner.radius*2+5*Runner.radius));
+                }
             }
         }
-        rows=smallfries/10+1;
-        for(int j=0;j<rows;j++) quantity[j]=smallfries/rows;
-        for(int j=0;j<smallfries%rows;j++) quantity[j]++;
-        for(int j=0; j<rows;j++)
+        if(smallfries>0)
         {
-            x=Controller.SIZE-quantity[j]*SmallFry.radius;
-            y=j*SmallFry.radius+25+(runners/10+1)*Runner.radius;
-            for (int i = 0; i < quantity[j]; i++)
+            rows=smallfries/10+1;
+            for(int j=0;j<rows;j++) quantity[j]=smallfries/rows;
+            for(int j=0;j<smallfries%rows;j++) quantity[j]++;
+            for(int j=0; j<rows;j++)
             {
-                list.add(new SmallFry(x+i*SmallFry.radius*2, y, x-10*SmallFry.radius+i*SmallFry.radius*2, x+i*SmallFry.radius*2+10*SmallFry.radius));
+                x=Controller.SIZE-quantity[j]*SmallFry.radius;
+                y=j*SmallFry.radius+25+(runners/10+1)*Runner.radius;
+                for (int i = 0; i < quantity[j]; i++)
+                {
+                    list.add(new SmallFry(x+i*SmallFry.radius*2, y, x-10*SmallFry.radius+i*SmallFry.radius*2, x+i*SmallFry.radius*2+10*SmallFry.radius));
+                }
             }
         }
         if(abnormals>0)
@@ -81,6 +92,36 @@ class Model
                 for (int i = 0; i < quantity[j]; i++)
                 {
                     list.add(new Abnormal(x+i*(Controller.SIZE-x)*2, y, x+i*(Controller.SIZE-x)*2+((i==0)?(-5*Abnormal.radius):(-30*Abnormal.radius)), x+i*(Controller.SIZE-x)*2+((i==0)?30*Abnormal.radius:5*Abnormal.radius), (i==0)?true:false));
+                }
+            }
+        }
+        if(hivewitches>0)
+        {
+            rows=(int) ((double) hivewitches/5+0.8);
+            for(int j=0;j<rows;j++) quantity[j]=hivewitches/rows;
+            for(int j=0;j<hivewitches%rows;j++) quantity[j]++;
+            for(int j=0; j<rows;j++)
+            {
+                x=Controller.SIZE-quantity[j]*Hivewitch.radius;
+                y=j*Hivewitch.radius+25+(runners/10+1)*Runner.radius+(smallfries/10+1)*SmallFry.radius;
+                for (int i = 0; i < quantity[j]; i++)
+                {
+                    list.add(new Hivewitch(x+i*Hivewitch.radius*2, y, x-10*Hivewitch.radius+i*Hivewitch.radius*2, x+i*Hivewitch.radius*2+10*Hivewitch.radius));
+                }
+            }
+        }
+        if(thiccboyes>0)
+        {
+            rows=(int) ((double) thiccboyes/5+0.8);
+            for(int j=0;j<rows;j++) quantity[j]=thiccboyes/rows;
+            for(int j=0;j<thiccboyes%rows;j++) quantity[j]++;
+            for(int j=0; j<rows;j++)
+            {
+                x=Controller.SIZE-quantity[j]*Thiccboy.radius;
+                y=(int) (j*Thiccboy.radius+25+(runners/10+1)*Runner.radius+(smallfries/10+1)*SmallFry.radius+(hivewitches/5+0.8)*Hivewitch.radius);
+                for (int i = 0; i < quantity[j]; i++)
+                {
+                    list.add(new Thiccboy(x+i*Thiccboy.radius*2, y, x-10*Thiccboy.radius+i*Thiccboy.radius*2, x+i*Thiccboy.radius*2+10*Thiccboy.radius));
                 }
             }
         }
@@ -160,11 +201,13 @@ class Model
         for(int j=0;j<list.size();j++) list.get(j).movement(i);
         for(Attacker a:list)
         {
-            modifier=((seed[0]*947)*modifier+seed[0]/seed[9])%100;
+            modifier=((seed[0]*947*109/107)*modifier+seed[0]/seed[9]*107/109)%100;
             System.out.println(modifier);
             //System.out.println(modifier+Math.log(Controller.SIZE-a.gety()));
             if(modifier+Math.log(Controller.SIZE-a.gety())>106.3) a.shoot();
         }
+        for(int j=0; j<queue.size(); j++) list.add(queue.get(j));
+        queue.clear();
         if(freemiss!=null)
         {
             for(Missile m:freemiss)
@@ -176,7 +219,8 @@ class Model
         if(ship!=null)
         {
             ship.fire(1);
-            ship.movement(1,3);
+            ship.movement(1,4);
+            ship.shoot(2);
         }
     }
     public boolean checkwin()
@@ -212,7 +256,7 @@ class Model
                     if (Math.sqrt(((list.get(i).getx() - rockets[j][0]) * (list.get(i).getx() - rockets[j][0]) + (list.get(i).gety() - rockets[j][1]) * (list.get(i).gety() - rockets[j][1]))) <= list.get(i).getr())
                     {
                         list.get(i).hit();
-                        if (list.get(i).isgone() == true)
+                        if (list.get(i).isgone()==true)
                         {
                             for(int k=0; k<list.get(i).gets(); k++) append(list.get(i).extract(k));
                             list.remove(i);
@@ -280,7 +324,7 @@ class Model
     }
     public void pause() {pause=!pause; if(ship==null) ship=new Ship();}
     public void moveship(int i, int j) {if(pause==true) return; else if(ship!=null) ship.movement(i, j);}
-    public void shoot() {if(pause==true) pause(); else if(ship!=null) ship.shoot();}
+    public void shoot(int i) {if(pause==true) pause(); else if(ship!=null) {ship.shoot(i); ship.movement(1, 4);}}
     public int sumrock() {int i=0; for(Attacker a:list) i+=a.gets(); return i;}
     static class Ship
     {
@@ -290,6 +334,9 @@ class Model
         private int shot;
         private int velocity;
         private int counter;
+        private int memory;
+        private boolean left;
+        private boolean right;
         public static int HEIGHT;
         static {HEIGHT=Controller.SIZE-75;}
         Ship()
@@ -300,6 +347,8 @@ class Model
             velocity=0;
             rockets=new Missile[3];
             counter=0;
+            left=false;
+            right=false;
         }
         public int getx() {return crdx;}
         public int getr() {return radius;}
@@ -326,14 +375,47 @@ class Model
         }
         public void movement(int i, int j)
         {
-            if (j==-1) velocity=-8;
-            else if(j==1) velocity=8;
-            //else if(j==2) shot++;
-            else if(j==0) {if(counter>=100) velocity=0;}
-            else if(j==3) counter++;
-            if((velocity<=0)&&(crdx<=radius)) return;
-            else if((velocity>=0)&&(crdx>=Controller.SIZE*2)) return;
-            else crdx+=velocity*i;
+            if(j==1&&left==true)
+            {
+                velocity=0;
+                right=true;
+                return;
+            }
+            if(j==-1&&right==true)
+            {
+                velocity=0;
+                left=true;
+                return;
+            }
+            if (j==-1)
+            {
+                left=true;
+                velocity=-4;
+            }
+            else if(j==1)
+            {
+                right=true;
+                velocity=4;
+            }
+            else if(j==-2)
+            {
+                if(right==true) velocity=4;
+                else velocity=0;
+                left=false;
+            }
+            else if(j==2)
+            {
+                if(left==true) velocity=-4;
+                else velocity=0;
+                right=false;
+            }
+            else if(j==4)
+            {
+                if(counter!=0) counter++;
+                if ((velocity <= 0) && (crdx <= radius)) return;
+                else if ((velocity >= 0) && (crdx >= Controller.SIZE * 2 - radius * 3)) return;
+                else crdx += velocity * i;
+            }
         }
         public void fire(int i)
         {
@@ -361,12 +443,20 @@ class Model
                 }
             }
         }
-        public void shoot()
+        public void shoot(int i)
         {
+            if(i==1) counter=1;
+            else if(i==0)
+            {
+                counter=0;
+                return;
+            }
             if(shot==3) return;
-            rockets[shot]=new Missile(crdx,HEIGHT+1, false);
-            shot++;
-            movement(1, 4);
+            if(counter%20==1)
+            {
+                rockets[shot] = new Missile(crdx, HEIGHT + 1, false);
+                shot++;
+            }
         }
     }
     static class Missile
@@ -621,5 +711,109 @@ class Model
             shot++;
         }
         public void reload() {shot=0; rockets=new Missile[1];}
+    }
+    static class Thiccboy extends Attacker
+    {
+        private int magazine;
+        public static double weight;
+        static
+        {
+            radius=40;
+            weight=1.2;
+        }
+        Thiccboy(int x, int y, int ll, int lr)
+        {
+            magazine=0;
+            shot=0;
+            rockets=new Missile[4];
+            direction=true;
+            spritenum=4;
+            crdx=x;
+            crdy=y;
+            health=10;
+            velocity=1;
+            limitr=lr;
+            limitl=ll;
+        }
+        public void movement(int i)
+        {
+            if(direction==true) crdx+=i*velocity;
+            else crdx-=i*velocity;
+            if ((crdx-radius<=limitl)||(crdx+radius>=limitr))
+            {
+                direction=(!direction);
+                crdy+=50;
+            }
+            if(shot==0) return;
+            magazine+=1;
+            if(magazine>=150) shoot();
+            if(shot==0) return;
+            for(Missile m:rockets)
+            {
+                m.movement(i);
+                if((m.gety()>=Controller.SIZE)&&(shot>=rockets.length))
+                {
+                    reload();
+                    return;
+                }
+            }
+        }
+        public void shoot()
+        {
+            magazine=0;
+            if(shot>=rockets.length) return;
+            rockets[0]=new Missile(crdx+radius/4, crdy+radius, true);
+            rockets[1]=new Missile(crdx-radius/4, crdy+radius, true);
+            rockets[2]=new Missile(crdx-radius/4, crdy, true);
+            rockets[3]=new Missile(crdx+radius/4, crdy, true);
+            shot+=4;
+        }
+        public void reload() {shot=0; rockets=new Missile[4];}
+    }
+    static class Hivewitch extends Attacker
+    {
+        private int magazine;
+        public static double weight;
+        private int mandate;
+        static
+        {
+            radius=40;
+            weight=2.4;
+        }
+        Hivewitch(int x, int y, int ll, int lr)
+        {
+            magazine=0;
+            rockets=null;
+            direction=true;
+            spritenum=5;
+            crdx=x;
+            crdy=y;
+            health=15;
+            velocity=1;
+            limitr=lr;
+            limitl=ll;
+            mandate=200;
+        }
+        public void movement(int i)
+        {
+            if(direction==true) crdx+=i*velocity;
+            else crdx-=i*velocity;
+            if ((crdx-radius<=limitl)||(crdx+radius>=limitr))
+            {
+                direction=(!direction);
+            }
+            mandate-=i;
+            magazine+=i;
+            if(magazine>=400) shoot();
+        }
+        public void shoot()
+        {
+            if(mandate>0) return;
+            mandate=200;
+            magazine=0;
+            queue.add(new SmallFry(crdx+radius*2, crdy+radius*2, (0>crdx-SmallFry.radius*10)?0:crdx-SmallFry.radius*10, (Controller.SIZE*2<crdx+SmallFry.radius*10)?Controller.SIZE*2:crdx+SmallFry.radius*10));
+            queue.add(new SmallFry(crdx-radius*2, crdy+radius*2, (0>crdx-SmallFry.radius*10)?0:crdx-SmallFry.radius*10, (Controller.SIZE*2<crdx+SmallFry.radius*10)?Controller.SIZE*2:crdx+SmallFry.radius*10));
+        }
+        public void reload() {}
     }
 }

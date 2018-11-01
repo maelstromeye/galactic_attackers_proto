@@ -8,6 +8,8 @@ class View extends JPanel
     private Image sprite1;
     private Image sprite2;
     private Image sprite3;
+    private Image sprite4;
+    private Image sprite5;
     private int[][] positions;
     View()
     {
@@ -24,6 +26,8 @@ class View extends JPanel
             sprite1 = ImageIO.read(new File("resources/Sprite1.png"));
             sprite2 = ImageIO.read(new File("resources/Sprite2.png"));
             sprite3 = ImageIO.read(new File("resources/Sprite3.png"));
+            sprite4 = ImageIO.read(new File("resources/Sprite4.png"));
+            sprite5 = ImageIO.read(new File("resources/Sprite5.png"));
         }
         catch(IOException e)
         {
@@ -57,10 +61,6 @@ class View extends JPanel
             positions[i+data.length]=arr[i];
         }
     }
-    public void render(int[][] data)
-    {
-        this.repaint();
-    }
     public void paint(Graphics g)
     {
         super.paint(g);
@@ -83,6 +83,14 @@ class View extends JPanel
                 else if(positions[i][3]==3)
                 {
                     g.drawImage(sprite3, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
+                }
+                else if(positions[i][3]==4)
+                {
+                    g.drawImage(sprite4, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
+                }
+                else if(positions[i][3]==5)
+                {
+                    g.drawImage(sprite5, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
                 }
                 else if(positions[i][3]==100)
                 {

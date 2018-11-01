@@ -32,12 +32,12 @@ class Controller
                 while (true)
                 {
                     model.movement(1);
-                    model.hit();
                     view.load(model.getPositions());
                     view.append(model.getMissiles());
                     view.append(model.getRockets());
                     view.append(model.getfree());
                     view.repaint();
+                    model.hit();
                     if(model.checkwin()==true) view.dowin();
                     this.sleep(10);
                 }
@@ -46,7 +46,6 @@ class Controller
             {
                 e.printStackTrace();
             }
-
         }
     }
     class Keyboard implements KeyListener
@@ -55,11 +54,16 @@ class Controller
         {
             if (e.getKeyCode()==KeyEvent.VK_LEFT) model.moveship(1,-1);
             if (e.getKeyCode()==KeyEvent.VK_RIGHT) model.moveship(1,1);
-            if (e.getKeyCode()==KeyEvent.VK_SPACE) model.shoot();
+            if (e.getKeyCode()==KeyEvent.VK_SPACE) model.shoot(1);
             if (e.getKeyCode()==KeyEvent.VK_DOWN) model.pause();
             if (e.getKeyCode()==KeyEvent.VK_UP) model.skip();
         }
-        public void keyReleased(KeyEvent e) {model.moveship(1,0);}
+        public void keyReleased(KeyEvent e)
+        {
+            if (e.getKeyCode()==KeyEvent.VK_LEFT) model.moveship(1,-2);
+            if (e.getKeyCode()==KeyEvent.VK_RIGHT) model.moveship(1,2);
+            if (e.getKeyCode()==KeyEvent.VK_SPACE) model.shoot(0);
+        }
         public void keyTyped(KeyEvent e) {}
     }
 }
