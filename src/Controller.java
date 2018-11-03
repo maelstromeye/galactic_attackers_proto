@@ -1,45 +1,62 @@
-import javax.swing.*;
 import java.awt.event.*;
-
 class Controller
 {
     private View view;
     private Model model;
     private GameLoop game;
     public static final int SIZE=1000;
-    Controller(View view, Model model)
+    private Controller(View view, Model model)
     {
         this.view=view;
         this.model=model;
         game=new GameLoop();
         view.addKeyListener(new Keyboard());
     }
-    public void start() {game.run();}
-    public static void main(String args[])
-    {
-        View view=new View();
-        Model model=new Model();
-        Controller controller=new Controller(view, model);
-        controller.start();
-        System.out.println("Galactic Attackers");
-    }
+    private void start() {game.run();}
+        public static void main(String args[])
+        {
+            View view=new View();
+            Model model=new Model();
+            Controller controller=new Controller(view, model);
+            controller.start();
+            System.out.println("Galactic Attackers");
+            return;
+        }
     class GameLoop extends Thread
     {
         public void run()
         {
             try
             {
+                view.load(model.getPositions());
+                model.pause();
                 while (true)
                 {
                     model.movement(1);
+                    if(model.hit()==true)
+                    {
+                        view.load(model.getPositions());
+                        view.append(model.getMissiles());
+                        view.append(model.getRockets());
+                        view.append(model.getfree());
+                        model.shotdown();
+                        if(model.islive()==false) view.dolose();
+                        model.pause();
+                    }
+                    //if(model.getpause()) continue;
                     view.load(model.getPositions());
                     view.append(model.getMissiles());
                     view.append(model.getRockets());
                     view.append(model.getfree());
                     view.repaint();
-                    model.hit();
-                    if(model.checkwin()==true) view.dowin();
-                    this.sleep(10);
+                    if(model.getpause()) continue;
+                    if(model.checkwin()==true)
+                    {
+                        view.dowin();
+                        view.load(model.getPositions());
+                        model.pause();
+                    }
+                    sleep(10);
                 }
             }
             catch(InterruptedException e)

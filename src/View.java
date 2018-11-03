@@ -10,6 +10,7 @@ class View extends JPanel
     private Image sprite3;
     private Image sprite4;
     private Image sprite5;
+    private Image sprite6;
     private int[][] positions;
     View()
     {
@@ -28,6 +29,7 @@ class View extends JPanel
             sprite3 = ImageIO.read(new File("resources/Sprite3.png"));
             sprite4 = ImageIO.read(new File("resources/Sprite4.png"));
             sprite5 = ImageIO.read(new File("resources/Sprite5.png"));
+            sprite6 = ImageIO.read(new File("resources/Sprite6.png"));
         }
         catch(IOException e)
         {
@@ -35,6 +37,7 @@ class View extends JPanel
         }
     }
     public void dowin() {System.out.println("Good Job");}
+    public void dolose() {System.out.println("Gane Over");}
     public void load(int[][] arr)
     {
         if(arr==null) return;
@@ -92,9 +95,26 @@ class View extends JPanel
                 {
                     g.drawImage(sprite5, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
                 }
+                else if(positions[i][3]==6)
+                {
+                    g.drawImage(sprite6, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
+                }
+                else if(positions[i][3]==-6)
+                {
+                    g.drawImage(sprite6, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
+                    g.setColor(Color.RED);
+                    g.fillOval(positions[i][0]-positions[i][2]/2, positions[i][1], positions[i][2], positions[i][2]);
+                }
+                else if(positions[i][3]==-66)
+                {
+                    g.drawImage(sprite6, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
+                    g.setColor(Color.RED);
+                    g.fillOval(positions[i][0]-positions[i][2]/2, positions[i][1], positions[i][2], positions[i][2]);
+                    g.fillRect(positions[i][0]-positions[i][2]/2, positions[i][1]+positions[i][2]/2, positions[i][2], Controller.SIZE-positions[i][1]-positions[i][2]);
+                }
                 else if(positions[i][3]==100)
                 {
-                    g.drawImage(sprite0, positions[i][0]-positions[i][2]-1, positions[i][1],this);
+                    g.drawImage(sprite0, positions[i][0]-positions[i][2], positions[i][1]-positions[i][2],this);
                 }
                 else if(positions[i][3]==-1)
                 {
