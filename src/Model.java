@@ -18,8 +18,6 @@ class Model
         list=new Vector();
         lives=3;
         difficulty=5;
-        Runner.weight=0.2;
-        SmallFry.weight=0.1;
         ship=new Ship();
         seed=new double[10];
         seed[0]=randfrom(128,256);
@@ -29,8 +27,8 @@ class Model
         seed[3]=randfrom(seed[0]/8, seed[0]/4);
         seed[4]=randfrom(seed[0]/16, seed[0]/8);
         seed[5]=randfrom(seed[0]/4, seed[0]/2);
+        seed[6]=randfrom(seed[0]/16, seed[0]/8);
         seed[9]=randfrom(seed[0]+1, 2*seed[0]+1);
-        //seed[9]=randfrom((double)seed[9], (double)seed[0]);
         modifier=seed[0]/seed[1]/seed[2]*107/109;
         if(modifier>0.2) modifier=modifier/2;
         generator();
@@ -41,16 +39,17 @@ class Model
     private double evolve() {seed[8]=(seed[8]*(seed[0]*947*109/107)+(seed[0]*947*109/107))%seed[0]+seed[0]/2; return seed[0]/seed[8];}
     public void generator()
     {
-        int y, x, smallfries, runners, abnormals, thiccboyes, hivewitches, laserboys;
+        int y, x, smallfries, runners, abnormals, thiccboyes, hivewitches, laserboys, flylords;
         double d,e=0;
         int[] quantity = new int[10];
         int rows;
         smallfries = (int) (Math.sqrt(2*difficulty) / (SmallFry.weight + seed[1] / seed[0] * Runner.weight + seed[2] / seed[0] * Abnormal.weight + seed[3] / seed[0] * Thiccboy.weight + seed[4]/seed[0]*Hivewitch.weight + seed[5]/seed[0]*Laserboy.weight));
-        runners = (int) (seed[1]/seed[0]);
-        abnormals = (int) (seed[2]/ seed[0]);
-        thiccboyes = (int) (seed[3]/seed[0]);
-        hivewitches= (int) (seed[4]/seed[0]);
-        laserboys= (int) (seed[5]/seed[0]);
+        runners = (int) (seed[1]/seed[0]*smallfries);
+        abnormals = (int) (seed[2]/ seed[0]*smallfries);
+        thiccboyes = (int) (seed[3]/seed[0]*smallfries);
+        hivewitches= (int) (seed[4]/seed[0]*smallfries);
+        laserboys= (int) (seed[5]/seed[0]*smallfries);
+        flylords=(int) (seed[6]/seed[0]*smallfries);
         d=smallfries*SmallFry.weight+runners*Runner.weight+abnormals*Abnormal.weight+thiccboyes*Thiccboy.weight+hivewitches*Hivewitch.weight+laserboys* Laserboy.weight;
         while(d>e)
         {
@@ -59,12 +58,9 @@ class Model
             thiccboyes = (int) (seed[3]/seed[0]*smallfries*evolve());
             hivewitches = (int) (seed[4]/seed[0]*smallfries*evolve());
             laserboys = (int) (seed[5]/seed[0]*smallfries*evolve());
+            flylords = (int) (seed[6]/seed[0]*smallfries*evolve());
             e=smallfries*SmallFry.weight+runners*Runner.weight+abnormals*Abnormal.weight+thiccboyes*Thiccboy.weight+hivewitches*Hivewitch.weight+laserboys* Laserboy.weight;
         }
-        System.out.println(seed[0]);
-        System.out.println(seed[1]);
-        System.out.println(seed[2]);
-        System.out.println(seed[3]);
         if(laserboys>0)
         {
             rows=(int) ((double) laserboys/6+0.84);
@@ -154,6 +150,10 @@ class Model
                     list.add(new Thiccboy(x+i*Thiccboy.radius*2, y, x-10*Thiccboy.radius+i*Thiccboy.radius*2, x+i*Thiccboy.radius*2+10*Thiccboy.radius));
                 }
             }
+        }
+        if(flylords>0)
+        {
+            list.add(new Flylord(500, 500, 0, 0, true));
         }
         /*if(laserboys>0)
         {
@@ -268,18 +268,22 @@ class Model
         for(Attacker a:list)
         {
             modifier=((seed[0]*947*109/107)*modifier+seed[0]/seed[9]*107/109)%100;
-            System.out.println(modifier);
-            //System.out.println(modifier+Math.log(Controller.SIZE-a.gety()));
             if(modifier+Math.log(Controller.SIZE-a.gety())>106.3) a.shoot();
         }
         for(int j=0; j<queue.size(); j++) list.add(queue.get(j));
         queue.clear();
         if(freemiss!=null)
         {
-            for(Missile m:freemiss)
+            for(int j=0; j<freemiss.size(); j++)
             {
-                if(m.getv()==true) m.vertmovement(1);
-                else m.movement(1);
+                if(freemiss.get(j).getv()==true) freemiss.get(j).vertmovement(1);
+                else freemiss.get(j).movement(1);
+                if(freemiss.get(j).gety()>=Controller.SIZE) freemiss.remove(j);
+                if(freemiss.isEmpty())
+                {
+                    freemiss=null;
+                    break;
+                }
             }
         }
         if(ship!=null)
@@ -295,6 +299,7 @@ class Model
             difficulty+=2;
             ship.reload();
             this.generator();
+            freemiss=null;
             return true;
         }
         else return false;
@@ -311,6 +316,7 @@ class Model
     {
         if(pause==true) return false;
         int[][] rockets=getMissiles();
+        Missile missile;
         if (rockets!=null)
         {
             for (int i = 0; i < list.size(); i++)
@@ -323,7 +329,18 @@ class Model
                         list.get(i).hit();
                         if (list.get(i).isgone()==true)
                         {
-                            for(int k=0; k<list.get(i).gets(); k++) append(list.get(i).extract(k));
+                            for(int k=0; k<list.get(i).gets(); k++)
+                            {
+                                missile=list.get(i).extract(k);
+                                if(missile==null)
+                                {
+                                    k++;
+                                    continue;
+                                }
+                                if(freemiss==null) freemiss=new Vector();
+                                freemiss.add(missile);
+
+                            }
                             list.remove(i);
                         }
                         ship.shotdown(j);
@@ -335,34 +352,20 @@ class Model
         }
         int i=sumrock();
         if(i<=0) return false;
-        rockets=getRockets();
+        rockets=new int[i+((freemiss==null)?0:freemiss.size())][4];
+        System.arraycopy(getRockets(), 0, rockets, 0, i);
+        if(freemiss!=null) System.arraycopy(getfree(), 0, rockets, i, freemiss.size());
         if(ship!=null)
         {
-            for(int j=0; j<i; j++)
+            for(int j=0; j<rockets.length; j++)
             {
                 if(Math.sqrt((ship.getx()-rockets[j][0])*(ship.getx()-rockets[j][0])+(Ship.HEIGHT-rockets[j][1])*(Ship.HEIGHT-rockets[j][1]))<=ship.getr())
                 {
                     return true;
                 }
             }
-            if(freemiss!=null)
-            {
-                for(int j=0; j<freemiss.size(); j++)
-                {
-                    if (Math.sqrt((ship.getx()-freemiss.get(j).getx())*(ship.getx()-freemiss.get(j).getx())+(Ship.HEIGHT-freemiss.get(j).gety())*(Ship.HEIGHT-freemiss.get(j).gety()))<=ship.getr())
-                    {
-                        return true;
-                    }
-                }
-            }
         }
         return false;
-    }
-    private void append(Missile m)
-    {
-        if(m==null) return;
-        if(freemiss==null) freemiss=new Vector();
-        freemiss.add(m);
     }
     public void shotdown()
     {
@@ -589,7 +592,7 @@ class Model
     }
     static class SmallFry extends Attacker
     {
-        public static double weight;
+        public static final double weight;
         static
         {
             radius=25;
@@ -632,7 +635,7 @@ class Model
     }
     static class Runner extends Attacker
     {
-        public static double weight;
+        public static final double weight;
         static
         {
             radius=20;
@@ -742,7 +745,7 @@ class Model
     static class Thiccboy extends Attacker
     {
         private int magazine;
-        public static double weight;
+        public static final double weight;
         static
         {
             radius=40;
@@ -800,7 +803,7 @@ class Model
     static class Hivewitch extends Attacker
     {
         private int magazine;
-        public static double weight;
+        public static final double weight;
         private int mandate;
         static
         {
@@ -846,7 +849,7 @@ class Model
     static class Laserboy extends Attacker
     {
         private int magazine, counter, countdown;
-        public static double weight;
+        public static final double weight;
         static
         {
             radius=30;
@@ -909,5 +912,71 @@ class Model
             return new Missile(crdx+(k-1)*radius/2, Ship.HEIGHT, true);
         }
         public void reload() {magazine=1; countdown=0; counter=0; spritenum=6; shot=0;}
+    }
+    static class Flylord extends Attacker
+    {
+        private Fly[] minions=new Fly[3];
+        private int magazine;
+        public static final double weight;
+        private double counter1;
+        private double counter2;
+        private int orbit;
+        private int startx;
+        private int starty;
+        private int quarter;
+        static
+        {
+            radius=30;
+            weight=1.5;
+        }
+        Flylord(int x, int y, int ll, int lr, boolean b)
+        {
+            magazine=0;
+            rockets=null;
+            direction=b;
+            spritenum=7;
+            crdx=x;
+            startx=x;
+            crdy=y;
+            starty=y;
+            health=10;
+            velocity=1;
+            limitr=0;
+            limitl=0;
+            counter1=0;
+            counter2=0;
+            orbit=500;
+            quarter=3;
+        }
+        public void movement(int i)
+        {
+            counter1-=((crdx-startx)*i*i*velocity*velocity/(2*orbit*orbit)-(i*velocity*(starty-orbit-crdy)*Math.sqrt(4*orbit*orbit-i*i*velocity*velocity))/(2*orbit*orbit));
+            counter2-=((starty-orbit-crdy)*i*i*velocity*velocity/(2*orbit*orbit)-(i*velocity*(crdx-startx)*Math.sqrt(4*orbit*orbit-i*i*velocity*velocity))/(2*orbit*orbit));
+            System.out.println(counter1);
+            System.out.println(counter2);
+            if(counter1>=1||counter1<=-1)
+            {
+                crdx+=(int) counter1;
+                counter1-=(int) counter1;
+            }
+            if(counter2>=1||counter2<=-1)
+            {
+                crdy+=(int) counter2;
+                counter2-=(int) counter2;
+            }
+            if(magazine>=400) shoot();
+        }
+        public void shoot()
+        {
+            return;
+        }
+        public void reload() {}
+    }
+    static class Fly extends Attacker
+    {
+        public void reload()
+        {
+
+        }
     }
 }

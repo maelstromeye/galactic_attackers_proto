@@ -35,19 +35,13 @@ class Controller
                     model.movement(1);
                     if(model.hit()==true)
                     {
-                        view.load(model.getPositions());
-                        view.append(model.getMissiles());
-                        view.append(model.getRockets());
-                        view.append(model.getfree());
+                        view.load(model.getPositions(), model.getMissiles(), model.getRockets(), model.getfree());
+                        view.repaint();
                         model.shotdown();
                         if(model.islive()==false) view.dolose();
                         model.pause();
                     }
-                    //if(model.getpause()) continue;
-                    view.load(model.getPositions());
-                    view.append(model.getMissiles());
-                    view.append(model.getRockets());
-                    view.append(model.getfree());
+                    view.load(model.getPositions(), model.getMissiles(), model.getRockets(), model.getfree());
                     view.repaint();
                     if(model.getpause()) continue;
                     if(model.checkwin()==true)
