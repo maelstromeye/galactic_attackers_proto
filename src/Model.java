@@ -14,10 +14,10 @@ class Model
     {
         pause=false;
         list=new Vector();
-        lives=3;
+        lives=1;
         difficulty=20;
         ship=new Ship();
-        seed=new double[10];
+        seed=new double[11];
         seed[0]=randfrom(128,256);
         seed[1]=seed[0];
         seed[2]=randfrom(seed[0]/2, seed[0]*2);
@@ -35,24 +35,15 @@ class Model
         queue=new Vector();
     }
     private double randfrom(double min, double max) {return (Math.random()*Math.abs(max-min))+((min<=max)?min:max);}
-    private double evolve() {seed[8]=(seed[8]*(seed[0]*947*109/107)+(seed[0]*947*109/107))%seed[0]+seed[0]/2; return seed[0]/seed[8];}
-    public void generator()
+    private double evolve() {seed[10]=(seed[10]*(seed[0]*947*109/107)+(seed[0]*947*109/107))%seed[0]+seed[0]/2; return seed[0]/seed[10];}
+    private void generator()
     {
         int y, x, smallfries, runners, abnormals, thiccboyes, hivewitches, laserboys, lamps;
-        double d,e=0;
+        double e=0;
         int[] quantity = new int[10];
         int rows;
         x = (int) (Math.sqrt(difficulty) / (SmallFry.weight*seed[1]/seed[0] + seed[2] / seed[0] * Runner.weight + seed[3] / seed[0] * Abnormal.weight + seed[4] / seed[0] * Thiccboy.weight + seed[5]/seed[0]*Hivewitch.weight + seed[6]/seed[0]*Laserboy.weight + seed[7]/seed[0]*Lamp.weight));
-        smallfries=(int) (seed[1]/seed[0])*x;
-        runners = (int) (seed[2]/seed[0]*x);
-        abnormals = (int) (seed[3]/ seed[0]*x);
-        thiccboyes = (int) (seed[4]/seed[0]*x);
-        hivewitches= (int) (seed[5]/seed[0]*x);
-        laserboys= (int) (seed[6]/seed[0]*x);
-        lamps=(int) (seed[7]/seed[0]*x);
-        d=smallfries*SmallFry.weight+runners*Runner.weight+abnormals*Abnormal.weight+thiccboyes*Thiccboy.weight+hivewitches*Hivewitch.weight+laserboys*Laserboy.weight+lamps*Lamp.weight;
-        System.out.println(Math.sqrt(difficulty)-d);
-        while((d>e)&&(e<Math.sqrt(difficulty)))
+        do
         {
             smallfries= (int) (seed[1]/seed[0]*x*evolve());
             runners=(int) (seed[2]/seed[0]*x*evolve());
@@ -63,6 +54,7 @@ class Model
             lamps = (int) (seed[7]/seed[0]*x*evolve());
             e=smallfries*SmallFry.weight+runners*Runner.weight+abnormals*Abnormal.weight+thiccboyes*Thiccboy.weight+hivewitches*Hivewitch.weight+laserboys*Laserboy.weight+lamps*Lamp.weight;
         }
+        while((Math.sqrt(difficulty)/2>e)&&(e<Math.sqrt(difficulty)));
         if(laserboys>0)
         {
             rows=(int) ((double) laserboys/6+0.84);
@@ -153,7 +145,7 @@ class Model
                 }
             }
         }
-        if(lamps>0) for (int i = 0; i < lamps; i++) list.add(new Lamp(Controller.SIZE, 225, (seed[0]/seed[8]>=1)?true:false, (270+360/lamps*i)%360*Math.PI/180, 175));
+        if(lamps>0) for (int i = 0; i < lamps; i++) list.add(new Lamp(Controller.SIZE, 225, (seed[0]/seed[10]>=1)?true:false, (270+360/lamps*i)%360*Math.PI/180, 175));
     }
     /*private <T extends Attacker> void fillout(int number, T t, int index)
     {
@@ -263,7 +255,7 @@ class Model
             {
                 if(freemiss.get(j).getv()) freemiss.get(j).vertmovement(1);
                 else freemiss.get(j).movement(1);
-                if(freemiss.get(j).gety()>=Controller.SIZE) freemiss.remove(j);
+                if(freemiss.get(j).gety()>=Ship.HEIGHT+Ship.radius) freemiss.remove(j);
                 if(freemiss.isEmpty())
                 {
                     freemiss=null;
@@ -376,7 +368,7 @@ class Model
         private boolean left;
         private boolean right;
         public static int HEIGHT;
-        static {HEIGHT=Controller.SIZE-75;}
+        static {HEIGHT=Controller.SIZE*6/5-75;}
         Ship()
         {
             crdx=Controller.SIZE;
@@ -926,7 +918,7 @@ class Model
             startx=x;
             crdy=(int) (y+(o)*Math.sin(a));
             starty=y;
-            health=10;
+            health=5;
             velocity=1.5;
             limitr=0;
             limitl=0;

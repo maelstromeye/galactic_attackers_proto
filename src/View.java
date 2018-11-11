@@ -12,15 +12,44 @@ class View extends JPanel
     private Image sprite5;
     private Image sprite6;
     private Image sprite7;
+    private Image sprite8;
+    private Image backdrop;
     private int[][] positions;
-    View()
+    private int stage;
+    int height=Controller.SIZE*6/5;
+    private JFrame gamemenu, game, gameover;
+    View(JButton...buttons)
     {
-        JFrame frame = new JFrame("Galaxy");
-        frame.add(this);
-        frame.setSize(2 * Controller.SIZE, Controller.SIZE);
-        frame.setVisible(true);
-        frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        menu(275, 75, null, buttons);
+    }
+    public void quit() {if(game!=null) game.dispose(); if(gamemenu!=null) gamemenu.dispose(); if(gameover!=null) gameover.dispose();}
+    public void menu(int x, int y, String string, JButton...buttons)
+    {
+        quit();
+        this.removeAll();
+        if(string!=null) this.add(new JLabel(string));
+        gamemenu = new JFrame("Galaxy");
+        for(JButton button: buttons) this.add(button);
+        gamemenu.add(this);
+        gamemenu.setSize(x,y);
+        gamemenu.setLocationRelativeTo(null);
+        gamemenu.setVisible(true);
+        gamemenu.setResizable(false);
+        gamemenu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setFocusable(true);
+    }
+    public void game()
+    {
+        quit();
+        this.removeAll();
+        stage=1;
+        game = new JFrame("Galaxy");
+        game.add(this);
+        game.setSize(2 * Controller.SIZE, Controller.SIZE*6/5);
+        game.setLocationRelativeTo(null);
+        game.setVisible(true);
+        game.setResizable(false);
+        game.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setFocusable(true);
         try
         {
@@ -31,15 +60,25 @@ class View extends JPanel
             sprite4 = ImageIO.read(new File("resources/Sprite4.png"));
             sprite5 = ImageIO.read(new File("resources/Sprite5.png"));
             sprite6 = ImageIO.read(new File("resources/Sprite6.png"));
-            sprite7 = ImageIO.read(new File("resources/Sprite6.png"));
+            sprite7 = ImageIO.read(new File("resources/Sprite7.png"));
+            sprite8 = ImageIO.read(new File("resources/Sprite8.png"));
+            backdrop = ImageIO.read(new File("resources/Backdrop.png"));
         }
         catch(IOException e)
         {
             e.printStackTrace();
         }
     }
-    public void dowin() {System.out.println("Good Job");}
-    public void dolose() {System.out.println("Gane Over");}
+    public void dowin()
+    {
+        stage++;
+    }
+    public void dolose(JButton button)
+    {
+        quit();
+        menu(500, 500, "Game Over", button);
+        positions=null;
+    }
     public void load(int[][]...arr)
     {
         if(arr[0]==null) return;
@@ -64,11 +103,12 @@ class View extends JPanel
         super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setColor(Color.WHITE);
-        g2d.fillRect(0,0,Controller.SIZE*2,Controller.SIZE);
         if(positions!=null)
         {
-            for (int i = 0; i < positions.length; i++)
+            g.drawImage(backdrop, 0, 0-height, this);
+            height-=3;
+            if(height<=0) height=Controller.SIZE*6/5;
+            for(int i = 0; i < positions.length; i++)
             {
                 switch (positions[i][3])
                 {
@@ -99,20 +139,25 @@ class View extends JPanel
                         g.drawImage(sprite6, positions[i][0] - positions[i][2], positions[i][1] - positions[i][2], this);
                         g.setColor(Color.RED);
                         g.fillOval(positions[i][0] - positions[i][2] / 2, positions[i][1], positions[i][2], positions[i][2]);
-                        g.fillRect(positions[i][0] - positions[i][2] / 2, positions[i][1] + positions[i][2] / 2, positions[i][2], Controller.SIZE - positions[i][1] - positions[i][2]);
+                        g.fillRect(positions[i][0] - positions[i][2] / 2, positions[i][1] + positions[i][2] / 2, positions[i][2], Controller.SIZE*6/5 - positions[i][1] - positions[i][2]);
                         break;
                     case 7:
                         g.drawImage(sprite7, positions[i][0] - positions[i][2], positions[i][1] - positions[i][2], this);
                         break;
+                    case 8:
+                        g.drawImage(sprite8, positions[i][0] - positions[i][2], positions[i][1] - positions[i][2], this);
+                        break;
                     case 100:
                         g.drawImage(sprite0, positions[i][0] - positions[i][2], positions[i][1] - positions[i][2], this);
+                        g2d.setColor(Color.RED);
+                        g2d.fillRect(0, positions[i][1]+positions[i][2], Controller.SIZE*2, Controller.SIZE*6/5-positions[i][1]);
                         break;
                     case -1:
                         g2d.setColor(Color.MAGENTA);
                         g.fillOval(positions[i][0], positions[i][1], 5, 5);
                         break;
                     case -2:
-                        g2d.setColor(Color.BLACK);
+                        g2d.setColor(Color.YELLOW);
                         g.fillOval(positions[i][0], positions[i][1], 5, 5);
                         break;
                     default:
@@ -120,7 +165,5 @@ class View extends JPanel
                 }
             }
         }
-
     }
-
 }
