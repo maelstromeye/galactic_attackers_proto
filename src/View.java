@@ -15,21 +15,56 @@ class View extends JPanel
     private Image sprite8;
     private Image backdrop;
     private int[][] positions;
-    private int stage;
+    private int stage, left, points;
     int height=Controller.SIZE*6/5;
-    private JFrame gamemenu, game, gameover;
+    private JFrame gamemenu, game;
+    private JLabel lives, level, score, popup, death;
     View(JButton...buttons)
     {
+        this.setLayout(new FlowLayout(FlowLayout.CENTER));
+        lives=new JLabel("lives: ");
+        level=new JLabel("stage: ");
+        score=new JLabel("score: ");
+        popup=new JLabel("STAGE ");
+        death=new JLabel("You Died!");
+        popup.setFont(new Font("TimesRoman", Font.BOLD, 50));
+        death.setFont(new Font("TimesRoman", Font.BOLD, 50));
+        popup.setForeground(Color.WHITE);
+        death.setForeground(Color.WHITE);
+        stage=0;
+        left=0;
+        points=0;
         menu(275, 75, null, buttons);
     }
-    public void quit() {if(game!=null) game.dispose(); if(gamemenu!=null) gamemenu.dispose(); if(gameover!=null) gameover.dispose();}
+    protected void paintComponent(Graphics g)
+    {
+        super.paintComponent(g);
+        if(left!=0)
+        {
+            g.drawImage(backdrop, 0, 0-height, this);
+            g.setColor(Color.WHITE);
+            g.fillRect(0, Controller.SIZE*6/5-55, 220, 50);
+            height-=3;
+            if (height<=0) height=Controller.SIZE*6/5;
+        }
+        else
+        {
+            g.setColor(Color.WHITE);
+            g.fillRect(0, 0, 500, 500);
+        }
+    }
+    public void quit() {if(game!=null) game.dispose(); if(gamemenu!=null) gamemenu.dispose();}
     public void menu(int x, int y, String string, JButton...buttons)
     {
         quit();
         this.removeAll();
         if(string!=null) this.add(new JLabel(string));
         gamemenu = new JFrame("Galaxy");
-        for(JButton button: buttons) this.add(button);
+        for(JButton button: buttons)
+        {
+            button.setLocation(0, 0);
+            this.add(button);
+        }
         gamemenu.add(this);
         gamemenu.setSize(x,y);
         gamemenu.setLocationRelativeTo(null);
@@ -42,7 +77,12 @@ class View extends JPanel
     {
         quit();
         this.removeAll();
-        stage=1;
+        this.add(lives);
+        this.add(level);
+        this.add(score);
+        this.add(popup);
+        this.add(death);
+        stage=0;
         game = new JFrame("Galaxy");
         game.add(this);
         game.setSize(2 * Controller.SIZE, Controller.SIZE*6/5);
@@ -69,18 +109,24 @@ class View extends JPanel
             e.printStackTrace();
         }
     }
+    public void death(){death.setVisible(true);}
     public void dowin()
     {
-        stage++;
+        popup.setText("STAGE "+stage);
+        popup.setVisible(true);
     }
     public void dolose(JButton button)
     {
         quit();
+        this.setLayout(new FlowLayout(FlowLayout.CENTER));
+        stage=0;
         menu(500, 500, "Game Over", button);
         positions=null;
     }
     public void load(int[][]...arr)
     {
+        popup.setVisible(false);
+        death.setVisible(false);
         if(arr[0]==null) return;
         int sum=0;
         for(int i=0; i<arr.length; i++)
@@ -98,16 +144,16 @@ class View extends JPanel
             }
         }
     }
+    public void loadmisc(int liv, int scor, int lvl) {left=liv; points=scor; stage=lvl;}
     public void paint(Graphics g)
     {
         super.paint(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        popup.setLocation(Controller.SIZE-100, Controller.SIZE/2);
+        death.setLocation(Controller.SIZE-110, Controller.SIZE/2);
         if(positions!=null)
         {
-            g.drawImage(backdrop, 0, 0-height, this);
-            height-=3;
-            if(height<=0) height=Controller.SIZE*6/5;
             for(int i = 0; i < positions.length; i++)
             {
                 switch (positions[i][3])
@@ -149,8 +195,12 @@ class View extends JPanel
                         break;
                     case 100:
                         g.drawImage(sprite0, positions[i][0] - positions[i][2], positions[i][1] - positions[i][2], this);
-                        g2d.setColor(Color.RED);
-                        g2d.fillRect(0, positions[i][1]+positions[i][2], Controller.SIZE*2, Controller.SIZE*6/5-positions[i][1]);
+                        level.setLocation(0, positions[i][1]+positions[i][2]*2);
+                        lives.setLocation(75, positions[i][1]+positions[i][2]*2);
+                        score.setLocation(150, positions[i][1]+positions[i][2]*2);
+                        level.setText("stage: "+stage);
+                        lives.setText("lives: "+left);
+                        score.setText("score: "+points);
                         break;
                     case -1:
                         g2d.setColor(Color.MAGENTA);

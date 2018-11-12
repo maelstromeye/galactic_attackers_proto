@@ -4,6 +4,8 @@ class Model
     private boolean pause;
     private int difficulty;
     private int lives;
+    private int stage;
+    private double score;
     private Ship ship;
     private double[] seed;
     private static List<Attacker> list;
@@ -14,8 +16,10 @@ class Model
     {
         pause=false;
         list=new Vector();
-        lives=1;
-        difficulty=20;
+        lives=3;
+        score=0;
+        stage=1;
+        difficulty=100;
         ship=new Ship();
         seed=new double[11];
         seed[0]=randfrom(128,256);
@@ -39,7 +43,7 @@ class Model
     private void generator()
     {
         int y, x, smallfries, runners, abnormals, thiccboyes, hivewitches, laserboys, lamps;
-        double e=0;
+        double e;
         int[] quantity = new int[10];
         int rows;
         x = (int) (Math.sqrt(difficulty) / (SmallFry.weight*seed[1]/seed[0] + seed[2] / seed[0] * Runner.weight + seed[3] / seed[0] * Abnormal.weight + seed[4] / seed[0] * Thiccboy.weight + seed[5]/seed[0]*Hivewitch.weight + seed[6]/seed[0]*Laserboy.weight + seed[7]/seed[0]*Lamp.weight));
@@ -273,7 +277,8 @@ class Model
     {
         if(list.isEmpty()==true)
         {
-            difficulty+=20;
+            difficulty+=50;
+            stage+=1;
             ship.reload();
             this.generator();
             freemiss=null;
@@ -318,6 +323,7 @@ class Model
                                 freemiss.add(missile);
                             }
                             list.get(i).reload();
+                            score+=list.get(i).getscore();
                             list.remove(i);
                         }
                         ship.shotdown(j);
@@ -356,7 +362,9 @@ class Model
     public void moveship(int i, int j) {if(pause==true) return; else if(ship!=null) ship.movement(i, j);}
     public void shoot(int i) {if(pause==true&&i!=0) {pause(); return;} else if(ship!=null) {ship.shoot(i); ship.movement(1, 4);}}
     public int sumrock() {int i=0; for(Attacker a:list) i+=a.gets(); return i;}
-    public boolean islive() {if(lives>0) return true; return false;}
+    public int getlives() {return lives;}
+    public int getscore() {return (int) score;}
+    public int getstage() {return stage;}
     static class Ship
     {
         public static final int radius=10;
@@ -520,17 +528,11 @@ class Model
         Attacker() {}
         public int getx() {return crdx;}
         public int gety() {return crdy;}
-        public int getlr() {return limitr;}
-        public int getll() {return limitl;}
         public int gets() {return shot;}
         public int getspr() {return spritenum;}
-        public void setx(int x) {crdx=x;}
-        public void sety(int y) {crdy=y;}
-        public void setlr(int l) {limitr=l;}
-        public void setll(int l) {limitl=l;}
-        public void seth(int i) {health=i;}
         public void hit() {health--;}
         public abstract int getr();
+        public abstract double getscore();
         public abstract void reload();
         public abstract void movement(int i);
         public boolean isgone()
@@ -594,6 +596,7 @@ class Model
         }
         public void reload() {shot=0; rockets=new Missile[1];}
         public int getr(){return radius;}
+        public double getscore(){return 10*weight;}
     }
     static class Runner extends Attacker
     {
@@ -645,6 +648,7 @@ class Model
         }
         public void reload() {shot=0; rockets=new Missile[2];}
         public int getr(){return radius;}
+        public double getscore(){return 10*weight;}
     }
     static class Abnormal extends Attacker
     {
@@ -712,6 +716,7 @@ class Model
         }
         public void reload() {shot=0; rockets=new Missile[1]; magazine=0;}
         public int getr(){return radius;}
+        public double getscore(){return 10*weight;}
     }
     static class Thiccboy extends Attacker
     {
@@ -776,6 +781,7 @@ class Model
         }
         public void reload() {shot=0; rockets=new Missile[6]; magazine=0;}
         public int getr(){return radius;}
+        public double getscore(){return 10*weight;}
     }
     static class Hivewitch extends Attacker
     {
@@ -824,6 +830,7 @@ class Model
         }
         public void reload() {}
         public int getr(){return radius;}
+        public double getscore(){return 10*weight;}
     }
     static class Laserboy extends Attacker
     {
@@ -889,6 +896,7 @@ class Model
         }
         public void reload() {magazine=1; countdown=0; counter=0; spritenum=6; shot=0;}
         public int getr(){return radius;}
+        public double getscore(){return 10*weight;}
     }
     static class Lamp extends Attacker
     {
@@ -967,6 +975,7 @@ class Model
         }
         public void reload() {}
         public int getr(){return radius;}
+        public double getscore(){return 10*weight;}
     }
     static class Moth extends Attacker
     {
@@ -981,7 +990,7 @@ class Model
         static
         {
             radius=15;
-            weight=1.5;
+            weight=0;
         }
         Moth(int x, int y, double a, boolean b)
         {
@@ -1042,5 +1051,6 @@ class Model
         }
         public void reload() {shot=0; rockets=new Missile[2];}
         public int getr(){return radius;}
+        public double getscore(){return 10*weight;}
     }
 }

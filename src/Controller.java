@@ -46,31 +46,44 @@ class Controller
                 model.pause();
                 while(model.getpause()) sleep(10);
                 view.load(model.getPositions());
+                view.loadmisc(model.getlives(), model.getscore(), model.getstage());
+                view.dowin();
                 view.repaint();
                 model.pause();
                 while(true)
                 {
+                    if(model.getpause())
+                    {
+                        sleep(10);
+                        continue;
+                    }
                     model.movement(1);
                     if(model.hit())
                     {
                         view.load(model.getPositions(), model.getMissiles(), model.getRockets(), model.getfree());
+                        view.loadmisc(model.getlives(), model.getscore(),  model.getstage());
+                        view.death();
                         view.repaint();
                         model.shotdown();
-                        if(!model.islive())
+                        if(model.getlives()<=0)
                         {
+                            view.loadmisc(model.getlives(), model.getscore(),  model.getstage());
                             view.dolose(reset);
                             break;
                         }
                         model.pause();
+                        continue;
                     }
-                    if(model.getpause()) continue;
                     view.load(model.getPositions(), model.getMissiles(), model.getRockets(), model.getfree());
+                    view.loadmisc(model.getlives(), model.getscore(),  model.getstage());
                     view.repaint();
                     if(model.checkwin())
                     {
                         view.load(model.getPositions(), null, null, null);
-                        model.pause();
+                        view.loadmisc(model.getlives(), model.getscore(), model.getstage());
                         view.dowin();
+                        view.repaint();
+                        model.pause();
                     }
                     sleep(10);
                 }
