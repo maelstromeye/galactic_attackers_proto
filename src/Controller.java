@@ -57,6 +57,12 @@ class Controller
                         sleep(10);
                         continue;
                     }
+                    if(model.getlives()<=0)
+                    {
+                        view.loadmisc(model.getlives(), model.getscore(),  model.getstage());
+                        view.dolose(reset);
+                        break;
+                    }
                     model.movement(1);
                     if(model.hit())
                     {
@@ -65,12 +71,6 @@ class Controller
                         view.death();
                         view.repaint();
                         model.shotdown();
-                        if(model.getlives()<=0)
-                        {
-                            view.loadmisc(model.getlives(), model.getscore(),  model.getstage());
-                            view.dolose(reset);
-                            break;
-                        }
                         model.pause();
                         continue;
                     }
@@ -79,6 +79,8 @@ class Controller
                     view.repaint();
                     if(model.checkwin())
                     {
+                        if(model.getstage()%6!=0) model.generator();
+                        else model.boss();
                         view.load(model.getPositions(), null, null, null);
                         view.loadmisc(model.getlives(), model.getscore(), model.getstage());
                         view.dowin();
@@ -124,7 +126,6 @@ class Controller
             }
             if(e.getSource()==quit)
             {
-                view.quit();
                 System.exit(0);
             }
             if(e.getSource()==reset)
