@@ -41,6 +41,8 @@ class Controller
     {
         public void run()
         {
+            long newtime, oldtime, sleeptime=0;
+            double counter=0;
             try
             {
                 model.pause();
@@ -50,11 +52,13 @@ class Controller
                 view.dowin();
                 view.repaint();
                 model.pause();
+                oldtime=System.nanoTime();
                 while(true)
                 {
                     if(model.getpause())
                     {
                         sleep(10);
+                        oldtime=System.nanoTime();
                         continue;
                     }
                     if(model.getlives()<=0)
@@ -63,7 +67,10 @@ class Controller
                         view.dolose(reset);
                         break;
                     }
-                    model.movement(1);
+                    newtime=System.nanoTime()-oldtime+(int)counter;
+                    System.out.println(newtime);
+                    model.movement((int) (newtime/10000000));
+                    counter+=(double)(newtime/10000000)-(int)(newtime/10000000);
                     if(model.hit())
                     {
                         view.load(model.getPositions(), model.getMissiles(), model.getRockets(), model.getfree());
@@ -79,7 +86,7 @@ class Controller
                     view.repaint();
                     if(model.checkwin())
                     {
-                        if(model.getstage()%6!=0) model.generator();
+                        if(true) model.generator();
                         else model.boss();
                         view.load(model.getPositions(), null, null, null);
                         view.loadmisc(model.getlives(), model.getscore(), model.getstage());
@@ -87,7 +94,10 @@ class Controller
                         view.repaint();
                         model.pause();
                     }
-                    sleep(10);
+                    oldtime=System.nanoTime();
+                    sleeptime-=newtime/1000000;
+                    sleeptime+=10;
+                    if(sleeptime>0) sleep(sleeptime);
                 }
             }
             catch(InterruptedException e)
