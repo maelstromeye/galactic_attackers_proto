@@ -31,7 +31,7 @@ class Model
         seed[4]=randfrom(seed[0]/8, seed[0]/4);
         seed[5]=randfrom(seed[0]/16, seed[0]/8);
         seed[6]=randfrom(seed[0]/8, seed[0]/4);
-        seed[7]=randfrom(seed[0]/8, seed[0]/2);
+        seed[7]=randfrom(seed[0]/12, seed[0]/4);
         seed[8]=randfrom(seed[0]/8, seed[0]/4);
         seed[9]=randfrom(seed[0]+1, 2*seed[0]+1);
         modifier=seed[0]*107/109;
@@ -61,7 +61,7 @@ class Model
             glitches=(int) (seed[8]/seed[0]*x*evolve());
             e=smallfries*SmallFry.weight+runners*Runner.weight+abnormals*Abnormal.weight+thiccboyes*Thiccboy.weight+hivewitches*Hivewitch.weight+laserboys*Laserboy.weight+lamps*Lamp.weight+glitches*Glitch.weight;
         }
-        while((Math.sqrt(difficulty)/2>e)&&(e<Math.sqrt(difficulty)));
+        while((Math.sqrt(difficulty)/2>e)&&(e>Math.sqrt(difficulty)));
         if(laserboys>0)
         {
             rows=(int) ((double) laserboys/6+0.84);
@@ -265,7 +265,7 @@ class Model
         {
             for(int j=0; j<freemiss.size(); j++)
             {
-                freemiss.get(j).movement(1);
+                freemiss.get(j).movement(i);
                 if(freemiss.get(j).gety()>=Ship.HEIGHT+Ship.radius)
                 {
                     freemiss.remove(j);
@@ -289,7 +289,7 @@ class Model
         if(list.isEmpty())
         {
             difficulty+=50;
-            stage+=1;
+            stage++;
             ship.reload();
             freemiss=null;
             ship.setx(Controller.SIZE);
@@ -300,11 +300,11 @@ class Model
     public void skip()
     {
         list.clear();
-        difficulty+=5;
+        difficulty+=50;
         stage++;
         if(ship!=null) ship.reload();
         else ship=new Ship();
-        boss();
+        generator();
     }
     public boolean hit()
     {
@@ -879,7 +879,7 @@ class Model
         static
         {
             radius=30;
-            weight=1.5;
+            weight=2;
             velocity=1;
             orbit=175;
         }
@@ -1120,7 +1120,7 @@ class Model
             super(x, y, ll, x-ll+radius);
             rockets=new Vector<>();
             spritenum=10;
-            health=50;
+            health=100;
             random=ctr;
             magazine=0;
             center=x;
@@ -1152,17 +1152,18 @@ class Model
             if(magazine>=50) shoot();
             moverocket(i);
             if(attack==Attack.blank) counter+=i;
-            if(counter>=500)
+            if(counter>=(evolve()%500+250))
             {
                 counter=0;
                 switch(evolve()%3)
                 {
                     case 0:
                         attack = Attack.hive;
+                        break;
 
                     case 1:
-                        attack=Attack.laser;
-
+                        attack=Attack.barrage;
+                        break;
                     case 2:
                          attack=Attack.laser;
                         break;
@@ -1193,8 +1194,9 @@ class Model
                 if(rockets.get(j).gety()>=Ship.HEIGHT+Ship.radius)
                 {
                     rockets.remove(j);
+                    j--;
                     shot--;
-                    return;
+                    continue;
                 }
             }
         }
