@@ -253,6 +253,7 @@ class Model
     public void movement(int i)
     {
         if(pause) return;
+        if(i==0) return;
         for(Attacker a: list) a.movement(i);
         for(Attacker a:list)
         {
@@ -612,10 +613,17 @@ class Model
         {
             if(direction) crdx+=i*velocity;
             else crdx-=i*velocity;
-            if ((crdx-radius<=limitl)||(crdx+radius>=limitr))
+            if(crdx-radius<=limitl)
             {
                 direction=(!direction);
-                crdy+=50;
+                crdx=limitl+radius+1;
+                crdy+=radius*2;
+            }
+            if(crdx+radius>=limitr)
+            {
+                direction=(!direction);
+                crdx=limitr-radius-1;
+                crdy+=radius*2;
             }
             moverocket(i);
         }
@@ -646,9 +654,15 @@ class Model
         {
             if(direction) crdx+=i*velocity;
             else crdx-=i*velocity;
-            if ((crdx-radius<=limitl)||(crdx+radius>=limitr))
+            if(crdx-radius<=limitl)
             {
                 direction=(!direction);
+                crdx=limitl+radius+1;
+            }
+            if(crdx+radius>=limitr)
+            {
+                direction=(!direction);
+                crdx=limitr-radius-1;
             }
             moverocket(i);
         }
@@ -681,17 +695,22 @@ class Model
         public void movement(int i)
         {
             counter+=i;
-            if(counter==10)
+            if(counter==7)
             {
                 crdy++;
                 counter=0;
             }
             if (direction) crdx+=i*velocity;
             else crdx-=i*velocity;
-            if ((crdx-radius<=limitl) || (crdx+radius>=limitr))
+            if(crdx-radius<=limitl)
             {
                 direction=(!direction);
-                crdy+=radius*3;
+                crdx=limitl+radius+1;
+            }
+            if(crdx+radius>=limitr)
+            {
+                direction=(!direction);
+                crdx=limitr-radius-1;
             }
             magazine+=i;
             if(magazine>=50) shoot();
@@ -735,10 +754,17 @@ class Model
         {
             if(direction) crdx+=i*velocity;
             else crdx-=i*velocity;
-            if ((crdx-radius<=limitl)||(crdx+radius>=limitr))
+            if(crdx-radius<=limitl)
             {
                 direction=(!direction);
-                crdy+=50;
+                crdx=limitl+radius+1;
+                crdy+=radius*2;
+            }
+            if(crdx+radius>=limitr)
+            {
+                direction=(!direction);
+                crdx=limitr-radius-1;
+                crdy+=radius*2;
             }
             magazine+=i;
             if(magazine>=50) shoot();
@@ -785,9 +811,15 @@ class Model
         {
             if(direction) crdx+=i*velocity;
             else crdx-=i*velocity;
-            if ((crdx-radius<=limitl)||(crdx+radius>=limitr))
+            if(crdx-radius<=limitl)
             {
                 direction=(!direction);
+                crdx=limitl+radius+1;
+            }
+            if(crdx+radius>=limitr)
+            {
+                direction=(!direction);
+                crdx=limitr-radius-1;
             }
             mandate-=i;
             magazine+=i;
@@ -831,7 +863,16 @@ class Model
         {
             if(direction) crdx+=i*velocity;
             else crdx-=i*velocity;
-            if ((crdx-radius<=limitl)||(crdx+radius>=limitr)) {direction=(!direction);}
+            if(crdx-radius<=limitl)
+            {
+                direction=(!direction);
+                crdx=limitl+radius+1;
+            }
+            if(crdx+radius>=limitr)
+            {
+                direction=(!direction);
+                crdx=limitr-radius-1;
+            }
             if(spritenum==6) magazine+=i;
             else counter+=i;
             if(magazine>=200) shoot();

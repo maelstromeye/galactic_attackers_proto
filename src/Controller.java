@@ -67,10 +67,10 @@ class Controller
                         view.dolose(reset);
                         break;
                     }
-                    newtime=System.nanoTime()-oldtime+(int)counter;
-                    System.out.println(newtime);
-                    model.movement((int) (newtime/10000000));
-                    counter+=(double)(newtime/10000000)-(int)(newtime/10000000);
+                    newtime=System.nanoTime()-oldtime;
+                    System.out.println((double)newtime/10000000+counter);
+                    model.movement((int) (newtime/10000000)+(int)counter);
+                    counter+=(double)newtime/10000000-(int)(newtime/10000000)-(int)counter;
                     if(model.hit())
                     {
                         view.load(model.getPositions(), model.getMissiles(), model.getRockets(), model.getfree());
