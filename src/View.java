@@ -40,19 +40,19 @@ class View extends JPanel
         menu(275, 75, null, buttons);
         try
         {
-            sprite0 = ImageIO.read(new File("resources/Sprite0.png"));
-            sprite1 = ImageIO.read(new File("resources/Sprite1.png"));
-            sprite2 = ImageIO.read(new File("resources/Sprite2.png"));
-            sprite3 = ImageIO.read(new File("resources/Sprite3.png"));
-            sprite4 = ImageIO.read(new File("resources/Sprite4.png"));
-            sprite5 = ImageIO.read(new File("resources/Sprite5.png"));
-            sprite6 = ImageIO.read(new File("resources/Sprite6.png"));
-            sprite7 = ImageIO.read(new File("resources/Sprite7.png"));
-            sprite8 = ImageIO.read(new File("resources/Sprite8.png"));
-            sprite9 = ImageIO.read(new File("resources/Sprite9.png"));
-            Gargantua=ImageIO.read(new File("resources/Gargantua.png"));
-            splinteredsprite9 = ImageIO.read(new File("resources/SplinteredSprite9.png"));
-            backdrop = ImageIO.read(new File("resources/Backdrop.png"));
+            sprite0 = ImageIO.read(new File("resources/Sprite0.png")).getScaledInstance((int) (Controller.SCALE*20), -1, Image.SCALE_SMOOTH);;
+            sprite1 = ImageIO.read(new File("resources/Sprite1.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
+            sprite2 = ImageIO.read(new File("resources/Sprite2.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
+            sprite3 = ImageIO.read(new File("resources/Sprite3.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
+            sprite4 = ImageIO.read(new File("resources/Sprite4.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);;
+            sprite5 = ImageIO.read(new File("resources/Sprite5.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);;
+            sprite6 = ImageIO.read(new File("resources/Sprite6.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);;
+            sprite7 = ImageIO.read(new File("resources/Sprite7.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);;
+            sprite8 = ImageIO.read(new File("resources/Sprite8.png")).getScaledInstance((int) (Controller.SCALE*30), -1, Image.SCALE_SMOOTH);;
+            sprite9 = ImageIO.read(new File("resources/Sprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
+            Gargantua=ImageIO.read(new File("resources/Gargantua.png")).getScaledInstance((int) (Controller.SCALE*200), -1, Image.SCALE_SMOOTH);;
+            splinteredsprite9 = ImageIO.read(new File("resources/SplinteredSprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
+            backdrop = ImageIO.read(new File("resources/Backdrop.png")).getScaledInstance((int) (Controller.SCALE*2000), -1, Image.SCALE_SMOOTH);;
         }
         catch(IOException e)
         {

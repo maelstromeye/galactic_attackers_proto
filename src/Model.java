@@ -289,7 +289,7 @@ class Model
     {
         if(list.isEmpty())
         {
-            difficulty+=50;
+            difficulty+=25;
             stage++;
             ship.reload();
             freemiss=null;
@@ -301,7 +301,7 @@ class Model
     public void skip()
     {
         list.clear();
-        difficulty+=50;
+        difficulty+=25;
         stage++;
         if(ship!=null) ship.reload();
         else ship=new Ship();
@@ -389,13 +389,14 @@ class Model
     {
         public static final int radius;
         public static final int HEIGHT;
-        private int crdx, shot, velocity, counter;
+        private double crdx, velocity;
+        private int shot, counter;
         private Vector<Missile> rockets;
         private boolean left, right;
         static
         {
             HEIGHT=Controller.SIZE*6/5-75;
-            radius=10;
+            radius=(int)(10*Controller.SCALE);
         }
         Ship()
         {
@@ -407,7 +408,7 @@ class Model
             left=false;
             right=false;
         }
-        public int getx() {return crdx;}
+        public int getx() {return (int) crdx;}
         public int gets() {return  shot;}
         public void setx(int x) {crdx=x;}
         public void reload() {rockets.clear(); shot=0;}
@@ -429,23 +430,23 @@ class Model
             {
                 left=true;
                 if(right) velocity=0;
-                else velocity=-4;
+                else velocity=-4*Controller.SCALE;
             }
             else if(j==1)
             {
                 right=true;
                 if(left) velocity=0;
-                else velocity=4;
+                else velocity=4*Controller.SCALE;
             }
             else if(j==-2)
             {
-                if(right) velocity=4;
+                if(right) velocity=4*Controller.SCALE;
                 else velocity=0;
                 left=false;
             }
             else if(j==2)
             {
-                if(left) velocity=-4;
+                if(left) velocity=-4*Controller.SCALE;
                 else velocity=0;
                 right=false;
             }
@@ -483,11 +484,11 @@ class Model
     }
     private static class Missile
     {
-        protected int crdx, crdy;
+        protected double crdx, crdy;
         protected boolean hostile;
-        protected static final int velocity=5;
+        protected static final double velocity=5*Controller.SCALE;
         Missile(){}
-        Missile(int x, int y, boolean b)
+        Missile(double x, double y, boolean b)
         {
             crdx=x;
             crdy=y;
@@ -498,42 +499,36 @@ class Model
             if(hostile) crdy+=velocity*i;
             else crdy-=velocity*i;
         }
-        public int getx() {return crdx;}
-        public int gety() {return crdy;}
+        public int getx() {return (int)crdx;}
+        public int gety() {return (int)crdy;}
     }
     private static class Vertmissile extends Missile
     {
-        private double xvelocity, yvelocity, counter1, counter2;
+        private double xvelocity, yvelocity;
         private boolean xdirection;
-        Vertmissile(int x, int y, boolean b, double ratio, boolean dir)
+        Vertmissile(double x, double y, boolean b, double ratio, boolean dir)
         {
             crdx=x;
             crdy=y;
             hostile=b;
-            counter1=0;
-            counter2=0;
             xvelocity=Math.sqrt(velocity*velocity/(1+ratio*ratio));
             yvelocity=Math.sqrt(velocity*velocity-xvelocity*xvelocity);
             xdirection=dir;
         }
         public void movement(int i)
         {
-            counter2+=yvelocity*i;
-            if(hostile) crdy+=counter2;
-            else crdy-=(int) counter2;
-            counter2-=(int) counter2;
-            counter1+=xvelocity*i;
-            if(xdirection) crdx+=counter1;
-            else crdx-=(int) counter1;
-            counter1-=(int) counter1;
+            if(hostile) crdy+=yvelocity*i;
+            else crdy-=yvelocity*i;
+            if(xdirection) crdx+=xvelocity*i;
+            else crdx-=(int) xvelocity*i;
         }
     }
     private abstract static class Attacker
     {
         protected Missile[] rockets;
         protected int spritenum;
-        protected int crdx;
-        protected int crdy;
+        protected double crdx;
+        protected double crdy;
         protected int health;
         protected boolean direction;
         protected int limitr;
@@ -548,8 +543,8 @@ class Model
             limitr=lr;
             limitl=ll;
         }
-        public int getx() {return crdx;}
-        public int gety() {return crdy;}
+        public int getx() {return (int)crdx;}
+        public int gety() {return (int)crdy;}
         public int gets() {return shot;}
         public int getspr() {return spritenum;}
         public void hit() {health--;}
@@ -594,12 +589,12 @@ class Model
     {
         public static final int radius;
         public static final double weight;
-        private static final int velocity;
+        private static final double velocity;
         static
         {
-            radius=25;
+            radius=(int)(25*Controller.SCALE);
             weight=0.1;
-            velocity=1;
+            velocity=1*Controller.SCALE;
         }
         SmallFry(int x, int y, int ll, int lr)
         {
@@ -635,12 +630,12 @@ class Model
     {
         public static final int radius;
         public static final double weight;
-        private static final int velocity;
+        private static final double velocity;
         static
         {
-            radius=20;
+            radius=(int)(20*Controller.SCALE);
             weight=0.2;
-            velocity=2;
+            velocity=2*Controller.SCALE;
         }
         Runner(int x, int y, int ll, int lr)
         {
@@ -674,13 +669,13 @@ class Model
     {
         public static final int radius;
         public static double weight;
-        private static final int velocity;
-        private int counter, magazine;
+        private static final double velocity;
+        private int magazine;
         static
         {
-            radius=25;
+            radius=(int)(26*Controller.SCALE);
             weight=0.33;
-            velocity = 1;
+            velocity=1*Controller.SCALE;
         }
         Abnormal(int x, int y, int ll, int lr, boolean b)
         {
@@ -688,18 +683,12 @@ class Model
             rockets=new Missile[3];
             spritenum=3;
             health=3;
-            counter=0;
             magazine=0;
             direction=b;
         }
         public void movement(int i)
         {
-            counter+=i;
-            if(counter==7)
-            {
-                crdy++;
-                counter=0;
-            }
+            crdy+=velocity*i/6;
             if (direction) crdx+=i*velocity;
             else crdx-=i*velocity;
             if(crdx-radius<=limitl)
@@ -733,13 +722,13 @@ class Model
     {
         public static final int radius;
         public static final double weight;
-        private static final int velocity;
+        private static final double velocity;
         private int magazine;
         static
         {
-            radius=40;
+            radius=(int)(40*Controller.SCALE);
             weight=1.2;
-            velocity=1;
+            velocity=1*Controller.SCALE;
         }
         Thiccboy(int x, int y, int ll, int lr)
         {
@@ -790,13 +779,13 @@ class Model
     {
         public static final int radius;
         public static final double weight;
-        private static final int velocity;
+        private static final double velocity;
         private int magazine, mandate;
         static
         {
-            radius=40;
+            radius=(int)(40*Controller.SCALE);
             weight=2;
-            velocity=1;
+            velocity=1*Controller.SCALE;
         }
         Hivewitch(int x, int y, int ll, int lr)
         {
@@ -830,8 +819,8 @@ class Model
             if(mandate>0) return;
             mandate=200;
             magazine=0;
-            queue.add(new SmallFry(crdx+radius*2, crdy+radius*2, (0>crdx-SmallFry.radius*10)?0:crdx-SmallFry.radius*10, (Controller.SIZE*2<crdx+SmallFry.radius*10)?Controller.SIZE*2:crdx+SmallFry.radius*10));
-            queue.add(new SmallFry(crdx-radius*2, crdy+radius*2, (0>crdx-SmallFry.radius*10)?0:crdx-SmallFry.radius*10, (Controller.SIZE*2<crdx+SmallFry.radius*10)?Controller.SIZE*2:crdx+SmallFry.radius*10));
+            queue.add(new SmallFry((int)crdx+radius*2, (int)crdy+radius*2, (0>crdx-SmallFry.radius*10)?0:(int) crdx-SmallFry.radius*10, (Controller.SIZE*2<crdx+SmallFry.radius*10)?Controller.SIZE*2:(int)crdx+SmallFry.radius*10));
+            queue.add(new SmallFry((int)crdx-radius*2, (int)crdy+radius*2, (0>crdx-SmallFry.radius*10)?0:(int)crdx-SmallFry.radius*10, (Controller.SIZE*2<crdx+SmallFry.radius*10)?Controller.SIZE*2:(int)crdx+SmallFry.radius*10));
         }
         public void reload() {}
         public int getr(){return radius;}
@@ -841,13 +830,13 @@ class Model
     {
         public static final int radius;
         public static final double weight;
-        private static final int velocity;
+        private static final double velocity;
         private int magazine, counter;
         static
         {
-            radius=30;
+            radius=(int)(30*Controller.SCALE);
             weight=0.75;
-            velocity=1;
+            velocity=1*Controller.SCALE;
         }
         Laserboy(int x, int y, int ll, int lr, boolean b)
         {
@@ -912,52 +901,40 @@ class Model
     {
         public static final int radius;
         public static final double weight;
-        private static final int velocity;
+        private static final double velocity;
         private static final int orbit;
         private Moth[] minions=new Moth[3];
         private int magazine, startx, starty;
-        private double counter1, counter2, angle;
+        private double angle;
         static
         {
-            radius=30;
+            radius=(int)(30*Controller.SCALE);
             weight=2;
-            velocity=1;
-            orbit=175;
+            velocity=1*Controller.SCALE;
+            orbit=(int) (175*Controller.SCALE);
         }
         Lamp(int x, int y, boolean b, double a)
         {
             magazine=0;
             direction=b;
             spritenum=7;
-            crdx=(int) (x+(orbit)*Math.cos(a));
+            crdx=x+(orbit)*Math.cos(a);
             startx=x;
-            crdy=(int) (y+(orbit)*Math.sin(a));
+            crdy=y+(orbit)*Math.sin(a);
             starty=y;
             health=5;
-            counter1=x+(orbit)*Math.cos(a)-crdx;
-            counter2=y+(orbit)*Math.sin(a)-crdy;
             angle=a;
             for(int i=0; i<3; i++)
             {
-                minions[i]=new Moth(crdx, crdy, (150+i*120)*Math.PI/180, !direction, Lamp.radius+Moth.radius);
+                minions[i]=new Moth((int) crdx, (int) crdy, (150+i*120)*Math.PI/180, !direction, Lamp.radius+Moth.radius);
                 list.add(minions[i]);
             }
         }
         public void movement(int i)
         {
             angle+=(direction)?i*velocity*Math.PI/180:-i*velocity*Math.PI/180;
-            counter1+=startx-crdx+(orbit)*Math.cos(angle);
-            counter2+=starty-crdy+(orbit)*Math.sin(angle);
-            if(counter1>=1||counter1<=-1)
-            {
-                crdx+=(int) counter1;
-                counter1-=(int) counter1;
-            }
-            if(counter2>=1||counter2<=-1)
-            {
-                crdy+=(int) counter2;
-                counter2-=(int) counter2;
-            }
+            crdx=startx+orbit*Math.cos(angle);
+            crdy=starty+orbit*Math.sin(angle);
             for(Moth m:minions)
             {
                 m.movement(crdx, crdy);
@@ -983,14 +960,14 @@ class Model
     {
         public static final double weight;
         public static final int radius;
-        private static final int velocity;
-        private double counter1, counter2, angle;
+        private static final double velocity;
+        private double angle;
         private int startx, starty, orbit;
         static
         {
-            radius=15;
+            radius=(int)(16*Controller.SCALE);
             weight=0;
-            velocity=1;
+            velocity=1*Controller.SCALE;
         }
         Moth(int x, int y, double a, boolean b, int o)
         {
@@ -998,29 +975,23 @@ class Model
             direction=b;
             spritenum=8;
             orbit=o;
-            crdx=(int) (x+(orbit)*Math.cos(a));
+            crdx=x+orbit*Math.cos(a);
             startx=x;
-            crdy=(int) (y+(orbit)*Math.sin(a));
+            crdy=y+orbit*Math.sin(a);
             shot=0;
             starty=y;
             health=1;
-            counter1=x+(orbit)*Math.cos(a)-crdx;
-            counter2=y+(orbit)*Math.sin(a)-crdy;
             angle=a;
         }
         public void movement(int i)
         {
             angle+=(direction)?i*velocity*Math.PI/180:-i*velocity*Math.PI/180;
-            counter1+=startx-crdx+(orbit)*Math.cos(angle);
-            counter2+=starty-crdy+(orbit)*Math.sin(angle);
-            crdx+=counter1;
-            counter1-=counter1;
-            crdy+=counter2;
-            counter2-=(int) counter2;
+            crdx=startx+orbit*Math.cos(angle);
+            crdy=starty+orbit*Math.sin(angle);
             if(!isgone()) moverocket(i);
         }
         public void res() {health=1;queue.add(this); reload();}
-        public void movement(int x, int y)
+        public void movement(double x, double y)
         {
             startx+=x-startx;
             starty+=y-starty;
@@ -1038,7 +1009,7 @@ class Model
         private int evolve() {counter=(counter*seed[0]*947*109/107+counter*seed[0]*947*109/107)%(5*Controller.SIZE); return (int) counter;}
         static
         {
-            radius=25;
+            radius=(int)(26*Controller.SCALE);
             weight=0.25;
         }
         Glitch(int x, int y, double ctr)
@@ -1084,15 +1055,15 @@ class Model
         private enum Attack {hive, laser, barrage, blank}
         Attack attack;
         private Vector<Missile> rockets;
-        private static int velocity;
+        private static double velocity;
         private double random;
         private int magazine, center, counter, countdown, minions;
         private int evolve() {random=(random*seed[0]*947*109/107+random*seed[0]*947*109/107)%5000; return (int) random;}
         static
         {
-            radius=100;
+            radius=(int)(100*Controller.SCALE);
             weight=100;
-            velocity=2;
+            velocity=2*Controller.SCALE;
         }
         private void hive(int i)
         {
@@ -1100,7 +1071,7 @@ class Model
             velocity=0;
             if(counter>=50)
             {
-                queue.add(new SmallFry(crdx, crdy+radius+SmallFry.radius, crdx-10*SmallFry.radius, crdx+10*SmallFry.radius));
+                queue.add(new SmallFry((int) crdx, (int) crdy+radius+SmallFry.radius, (int)crdx-10*SmallFry.radius, (int) crdx+10*SmallFry.radius));
                 counter=0;
                 minions++;
             }
@@ -1224,7 +1195,7 @@ class Model
         {
             if(shot==0||(k>=shot&&attack!=Attack.laser)) return null;
             if(k<rockets.size()) return rockets.get(k);
-            return new Missile(crdx-radius+(k-rockets.size())*((int) (radius/7))+((int) (k/3))*((int) (radius/7)), Ship.HEIGHT, true);
+            return new Missile(crdx-radius+(k-rockets.size())* (radius/7) + (k/3) * (radius/7), Ship.HEIGHT, true);
         }
         protected void moverocket(int i)
         {

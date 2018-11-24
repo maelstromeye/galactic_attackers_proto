@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.*;
 class Controller
 {
@@ -7,7 +8,14 @@ class Controller
     private GameLoop game;
     private static JButton play=new JButton("Play"),settings=new JButton("Settings"), quit=new JButton("Quit"), reset=new JButton("OK");
     private Menulistener menulistener;
-    public static final int SIZE=1000;
+    public static final double SCALE;
+    public static final int SIZE;
+    static
+    {
+        Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
+        SCALE=d.getWidth()/2560;
+        SIZE=(int) (1000*SCALE);
+    }
     private Controller(View view, Model model)
     {
         this.view=view;
@@ -41,8 +49,8 @@ class Controller
     {
         public void run()
         {
-            long newtime, oldtime, sleeptime=0;
-            double counter=0;
+            long newtime, oldtime;
+            double counter=0, sleeptime=0;
             try
             {
                 model.pause();
@@ -68,7 +76,6 @@ class Controller
                         break;
                     }
                     newtime=System.nanoTime()-oldtime;
-                    System.out.println((double)newtime/10000000+counter);
                     model.movement((int) (newtime/10000000)+(int)counter);
                     counter+=(double)newtime/10000000-(int)(newtime/10000000)-(int)counter;
                     if(model.hit())
@@ -86,7 +93,7 @@ class Controller
                     view.repaint();
                     if(model.checkwin())
                     {
-                        if(true) model.generator();
+                        if(model.getstage()%6!=0) model.generator();
                         else model.boss();
                         view.load(model.getPositions(), null, null, null);
                         view.loadmisc(model.getlives(), model.getscore(), model.getstage());
@@ -95,9 +102,9 @@ class Controller
                         model.pause();
                     }
                     oldtime=System.nanoTime();
-                    sleeptime-=newtime/1000000;
+                    sleeptime-=(double)newtime/1000000;
                     sleeptime+=10;
-                    if(sleeptime>0) sleep(sleeptime);
+                    if(sleeptime>0) sleep((int) sleeptime);
                 }
             }
             catch(InterruptedException e)
