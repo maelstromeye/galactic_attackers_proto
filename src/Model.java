@@ -42,12 +42,14 @@ class Model
     }
     private double randfrom(double min, double max) {return (Math.random()*Math.abs(max-min))+((min<=max)?min:max);}
     private double evolve() {seed[10]=(seed[10]*(seed[0]*947*109/107)+(seed[0]*947*109/107))%seed[0]+seed[0]/2; return seed[0]/seed[10];}
+    public void loadseed(double[] arr){seed=arr;}
     public void generator()
     {
         int y, x, smallfries, runners, abnormals, thiccboyes, hivewitches, laserboys, lamps, glitches;
         double e;
         int[] quantity = new int[10];
         int rows;
+        list.clear();
         x=(int) (Math.sqrt(difficulty)/(SmallFry.weight*seed[1]/seed[0]+seed[2]/seed[0]*Runner.weight+seed[3]/seed[0]*Abnormal.weight+seed[4]/seed[0]*Thiccboy.weight+seed[5]/seed[0]*Hivewitch.weight+seed[6]/seed[0]*Laserboy.weight+seed[7]/seed[0]*Lamp.weight+seed[8]/seed[0]*Glitch.weight));
         do
         {
@@ -395,7 +397,7 @@ class Model
         private boolean left, right;
         static
         {
-            HEIGHT=Controller.SIZE*6/5-75;
+            HEIGHT=(int)(Controller.SIZE*Controller.RATIO)-75;
             radius=(int)(10*Controller.SCALE);
         }
         Ship()
@@ -1031,7 +1033,7 @@ class Model
             if(magazine>=500)
             {
                 crdx=evolve()%(Controller.SIZE*2-2*radius)+radius;
-                crdy=evolve()%(Controller.SIZE*6/5-300)+radius;
+                crdy=evolve()%(Controller.SIZE*Controller.RATIO-300)+radius;
                 shoot();
                 magazine=0;
             }

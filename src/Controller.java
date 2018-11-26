@@ -6,14 +6,16 @@ class Controller
     private View view;
     private Model model;
     private GameLoop game;
-    private static JButton play=new JButton("Play"),settings=new JButton("Settings"), quit=new JButton("Quit"), reset=new JButton("OK");
+    private static JButton play=new JButton("Play"),settings=new JButton("Settings"), quit=new JButton("Quit"), reset=new JButton("OK"), accept=new JButton("OK");
+    private static JTextField seed=new JTextField(11);
     private Menulistener menulistener;
-    public static final double SCALE;
+    public static final double SCALE, RATIO;
     public static final int SIZE;
     static
     {
         Dimension d = Toolkit.getDefaultToolkit().getScreenSize();
         SCALE=d.getWidth()/2560;
+        RATIO=1.2;
         SIZE=(int) (1000*SCALE);
     }
     private Controller(View view, Model model)
@@ -26,6 +28,7 @@ class Controller
         settings.addActionListener(menulistener);
         quit.addActionListener(menulistener);
         reset.addActionListener(menulistener);
+        accept.addActionListener(menulistener);
     }
     private void start()
     {
@@ -34,6 +37,7 @@ class Controller
         settings.removeActionListener(menulistener);
         quit.removeActionListener(menulistener);
         reset.removeActionListener(menulistener);
+        accept.addActionListener(menulistener);
     }
     public static void main(String args[])
     {
@@ -147,6 +151,42 @@ class Controller
             }
             if(e.getSource()==reset)
             {
+                view.menu(275, 75, null, play, settings, quit);
+            }
+            if(e.getSource()==settings)
+            {
+                view.menu(275, 75, "seed: ");
+                view.add(seed);
+                view.add(accept);
+            }
+            if(e.getSource()==accept)
+            {
+                double[] arr=new double[11];
+                String string=seed.getText();
+                if(string.length()<1) arr[0]=128;
+                else arr[0]=(string.charAt(0)%128)+128;
+                if(string.length()<2) arr[1]=128;
+                else arr[1]=(string.charAt(1)%128)+128;
+                if(string.length()<3) arr[2]=64;
+                else arr[2]=(string.charAt(2)%192)+64;
+                if(string.length()<4) arr[3]=21;
+                else arr[3]=(string.charAt(3)%21)+21;
+                if(string.length()<5) arr[4]=16;
+                else arr[4]=(string.charAt(4)%16)+16;
+                if(string.length()<6) arr[5]=8;
+                else arr[5]=(string.charAt(5)%8)+8;
+                if(string.length()<7) arr[6]=16;
+                else arr[6]=(string.charAt(6)%16)+16;
+                if(string.length()<8) arr[7]=11;
+                else arr[7]=(string.charAt(7)%21)+11;
+                if(string.length()<9) arr[8]=16;
+                else arr[8]=(string.charAt(8)%16)+16;
+                if(string.length()<10) arr[9]=arr[0]+1;
+                else arr[9]=(string.charAt(9)%128)+arr[0]+1;
+                if(string.length()<11) arr[10]=947*945;
+                else arr[10]=string.charAt(10)*947+947*945;
+                model.loadseed(arr);
+                model.generator();
                 view.menu(275, 75, null, play, settings, quit);
             }
         }

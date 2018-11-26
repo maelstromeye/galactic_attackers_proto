@@ -1,6 +1,7 @@
 import javax.swing.*;
 import java.awt.*;
 import javax.imageio.*;
+import java.awt.event.KeyEvent;
 import java.io.*;
 class View extends JPanel
 {
@@ -19,19 +20,27 @@ class View extends JPanel
     private Image backdrop;
     private int[][] positions;
     private int stage, left, points;
-    private int height=Controller.SIZE*6/5;
+    private int height=(int)(Controller.SIZE*Controller.RATIO);
     private JFrame gamemenu, game;
-    private JLabel lives, level, score, popup, death;
+    private JLabel lives, level, score, popup, death, temp;
+    private JButton back;
     View(JButton...buttons)
     {
+        Font font=new Font("TimesRoman", Font.BOLD, (int)(13*Controller.SCALE));
         this.setLayout(new FlowLayout(FlowLayout.CENTER));
         lives=new JLabel("lives: ");
         level=new JLabel("stage: ");
         score=new JLabel("score: ");
         popup=new JLabel("STAGE ");
         death=new JLabel("You Died!");
-        popup.setFont(new Font("TimesRoman", Font.BOLD, 50));
-        death.setFont(new Font("TimesRoman", Font.BOLD, 50));
+        temp=new JLabel();
+        lives.setFont(font);
+        level.setFont(font);
+        score.setFont(font);
+        temp.setFont(font);
+        font=new Font("TimesRoman", Font.BOLD, (int)(50*Controller.SCALE));
+        popup.setFont(font);
+        death.setFont(font);
         popup.setForeground(Color.WHITE);
         death.setForeground(Color.WHITE);
         stage=0;
@@ -40,19 +49,19 @@ class View extends JPanel
         menu(275, 75, null, buttons);
         try
         {
-            sprite0 = ImageIO.read(new File("resources/Sprite0.png")).getScaledInstance((int) (Controller.SCALE*20), -1, Image.SCALE_SMOOTH);;
-            sprite1 = ImageIO.read(new File("resources/Sprite1.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
-            sprite2 = ImageIO.read(new File("resources/Sprite2.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
-            sprite3 = ImageIO.read(new File("resources/Sprite3.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
-            sprite4 = ImageIO.read(new File("resources/Sprite4.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);;
-            sprite5 = ImageIO.read(new File("resources/Sprite5.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);;
-            sprite6 = ImageIO.read(new File("resources/Sprite6.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);;
-            sprite7 = ImageIO.read(new File("resources/Sprite7.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);;
-            sprite8 = ImageIO.read(new File("resources/Sprite8.png")).getScaledInstance((int) (Controller.SCALE*30), -1, Image.SCALE_SMOOTH);;
-            sprite9 = ImageIO.read(new File("resources/Sprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
-            Gargantua=ImageIO.read(new File("resources/Gargantua.png")).getScaledInstance((int) (Controller.SCALE*200), -1, Image.SCALE_SMOOTH);;
-            splinteredsprite9 = ImageIO.read(new File("resources/SplinteredSprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);;
-            backdrop = ImageIO.read(new File("resources/Backdrop.png")).getScaledInstance((int) (Controller.SCALE*2000), -1, Image.SCALE_SMOOTH);;
+            sprite0 = ImageIO.read(new File("resources/Sprite0.png")).getScaledInstance((int) (Controller.SCALE*20), -1, Image.SCALE_SMOOTH);
+            sprite1 = ImageIO.read(new File("resources/Sprite1.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            sprite2 = ImageIO.read(new File("resources/Sprite2.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            sprite3 = ImageIO.read(new File("resources/Sprite3.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            sprite4 = ImageIO.read(new File("resources/Sprite4.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);
+            sprite5 = ImageIO.read(new File("resources/Sprite5.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);
+            sprite6 = ImageIO.read(new File("resources/Sprite6.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);
+            sprite7 = ImageIO.read(new File("resources/Sprite7.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);
+            sprite8 = ImageIO.read(new File("resources/Sprite8.png")).getScaledInstance((int) (Controller.SCALE*30), -1, Image.SCALE_SMOOTH);
+            sprite9 = ImageIO.read(new File("resources/Sprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            Gargantua=ImageIO.read(new File("resources/Gargantua.png")).getScaledInstance((int) (Controller.SCALE*200), -1, Image.SCALE_SMOOTH);
+            splinteredsprite9 = ImageIO.read(new File("resources/SplinteredSprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            backdrop = ImageIO.read(new File("resources/Backdrop.png")).getScaledInstance((int) (Controller.SCALE*2000), -1, Image.SCALE_SMOOTH);
         }
         catch(IOException e)
         {
@@ -66,7 +75,7 @@ class View extends JPanel
         {
             g.drawImage(backdrop, 0, 0-height, this);
             g.setColor(Color.WHITE);
-            g.fillRect(0, Controller.SIZE*6/5-55, 220, 50);
+            g.fillRect(0, (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE), (int)(220*Controller.SCALE), (int)(50*Controller.SCALE));
         }
         else
         {
@@ -78,8 +87,9 @@ class View extends JPanel
     {
         quit();
         this.removeAll();
-        if(string!=null) this.add(new JLabel(string));
-        gamemenu = new JFrame("Galaxy");
+        temp.setText(string);
+        this.add(temp);
+        gamemenu=new JFrame("Galaxy");
         for(JButton button: buttons)
         {
             button.setLocation(0, 0);
@@ -105,7 +115,7 @@ class View extends JPanel
         stage=0;
         game = new JFrame("Galaxy");
         game.add(this);
-        game.setSize(2 * Controller.SIZE, Controller.SIZE*6/5);
+        game.setSize(2*Controller.SIZE, (int)(Controller.SIZE*Controller.RATIO));
         game.setLocationRelativeTo(null);
         game.setVisible(true);
         game.setResizable(false);
@@ -121,8 +131,11 @@ class View extends JPanel
     {
         quit();
         this.setLayout(new FlowLayout(FlowLayout.CENTER));
-        stage=0;
         menu(500, 500, "Game Over", button);
+        this.add(level);
+        this.add(score);
+        back=button;
+        stage=0;
         positions=null;
     }
     private void quit() {if(game!=null) game.dispose(); if(gamemenu!=null) gamemenu.dispose();}
@@ -130,7 +143,7 @@ class View extends JPanel
     public void load(int[][]...arr)
     {
         height-=3;
-        if (height<=0) height=Controller.SIZE*6/5;
+        if (height<=0) height=(int) (Controller.SIZE*Controller.RATIO);
         popup.setVisible(false);
         death.setVisible(false);
         if(arr[0]==null) return;
@@ -155,6 +168,22 @@ class View extends JPanel
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         popup.setLocation(Controller.SIZE-100, Controller.SIZE/2);
         death.setLocation(Controller.SIZE-110, Controller.SIZE*4/5);
+        if(left==0)
+        {
+            level.setLocation(220, 100);
+            score.setLocation(220, 130);
+            temp.setLocation(210, 0);
+            if(back!=null) back.setLocation(220, 50);
+        }
+        else
+        {
+            level.setLocation(0, (int)(Controller.SIZE*Controller.RATIO-55));
+            lives.setLocation((int)(75*Controller.SCALE), (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE));
+            score.setLocation((int)(150*Controller.SCALE), (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE));
+            level.setText("stage: "+stage);
+            lives.setText("lives: "+left);
+            score.setText("score: "+points);
+        }
         if(positions!=null)
         {
             for(int[] i: positions)
@@ -188,7 +217,7 @@ class View extends JPanel
                         g.drawImage(sprite6, i[0]-i[2], i[1]-i[2],this);
                         g.setColor(Color.RED);
                         g.fillOval(i[0]-i[2]/2, i[1], i[2], i[2]);
-                        g.fillRect(i[0]-i[2]/2,i[1]+i[2]/2, i[2], Controller.SIZE*6/5-i[1]-i[2]);
+                        g.fillRect(i[0]-i[2]/2,i[1]+i[2]/2, i[2], (int)(Controller.SIZE*Controller.RATIO)-i[1]-i[2]);
                         break;
                     case 7:
                         g.drawImage(sprite7, i[0]-i[2], i[1]-i[2],this);
@@ -220,19 +249,13 @@ class View extends JPanel
                         g.fillOval(i[0]+i[2]/7, i[1]+i[2]*6/7, i[2]*2/7, i[2]*2/7);
                         g.fillOval(i[0]-i[2], i[1]+i[2]/7*5, i[2]*2/7, i[2]*2/7);
                         g.fillOval(i[0]+i[2]*5/7, i[1]+i[2]/7*5, i[2]*2/7, i[2]*2/7);
-                        g.fillRect(i[0]-i[2]*3/7, i[1]+i[2], i[2]*2/7, Controller.SIZE*6/5-i[1]);
-                        g.fillRect(i[0]+i[2]/7, i[1]+i[2], i[2]*2/7, Controller.SIZE*6/5-i[1]);
-                        g.fillRect(i[0]-i[2], i[1]+i[2]/7*6, i[2]*2/7, Controller.SIZE*6/5-i[1]);
-                        g.fillRect(i[0]+i[2]*5/7, i[1]+i[2]/7*6, i[2]*2/7, Controller.SIZE*6/5-i[1]);
+                        g.fillRect(i[0]-i[2]*3/7, i[1]+i[2], i[2]*2/7, (int)(Controller.SIZE*Controller.RATIO)-i[1]);
+                        g.fillRect(i[0]+i[2]/7, i[1]+i[2], i[2]*2/7, (int)(Controller.SIZE*Controller.RATIO)-i[1]);
+                        g.fillRect(i[0]-i[2], i[1]+i[2]/7*6, i[2]*2/7, (int)(Controller.SIZE*Controller.RATIO)-i[1]);
+                        g.fillRect(i[0]+i[2]*5/7, i[1]+i[2]/7*6, i[2]*2/7, (int)(Controller.SIZE*Controller.RATIO)-i[1]);
                         break;
                     case 100:
                         g.drawImage(sprite0,i[0]-i[2],i[1]-i[2], this);
-                        level.setLocation(0, i[1]+i[2]*2);
-                        lives.setLocation(75, i[1]+i[2]*2);
-                        score.setLocation(150, i[1]+i[2]*2);
-                        level.setText("stage: "+stage);
-                        lives.setText("lives: "+left);
-                        score.setText("score: "+points);
                         break;
                     case -1:
                         g2d.setColor(Color.MAGENTA);
