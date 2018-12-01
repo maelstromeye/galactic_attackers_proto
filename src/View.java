@@ -2,49 +2,50 @@ import javax.swing.*;
 import java.awt.*;
 import javax.imageio.*;
 import java.io.*;
+
+/**
+ * Modul view modelu MVC. Zawiera w sobie wszystkie obrazy, a takze rozne dane
+ * ktore nalezy wyswietlac oraz glowna tablice intow z pozycjami i numerami jak,
+ * gdzie i co nalezy wyswietlic. Jest Jpanele i zawiera w sobie Jframes menu oraz
+ * gry i odpowiednie labele. Button back jest tu z powodow czysto estetycznych.
+ */
 class View extends JPanel
 {
-    private Image sprite0;
-    private Image sprite1;
-    private Image sprite2;
-    private Image sprite3;
-    private Image sprite4;
-    private Image sprite5;
-    private Image sprite6;
-    private Image sprite7;
-    private Image sprite8;
-    private Image sprite9;
-    private Image splinteredsprite9;
-    private Image Gargantua;
-    private Image backdrop;
+    private Image sprite0, sprite1, sprite2, sprite3, sprite4, sprite5, sprite6, sprite7, sprite8, sprite9, splinteredsprite9, Gargantua, backdrop;
     private int[][] positions;
-    private int stage, left, points;
+    private int level, lives, score;
     private int height=(int)(Controller.SIZE*Controller.RATIO);
     private JFrame gamemenu, game;
-    private JLabel lives, level, score, popup, death, temp;
+    private JLabel liveslab, levellab, scorelab, popup, death, temp;
     private JButton back;
+
+    /**
+     * konstruktor ustala stan poczatkowy, laduje obrazy z resources, tworzy
+     * odpowiednie Jlabele i otwiera menu z gra.
+     * @param buttons Przyciski z jakimi otworzy sie menu
+     */
     View(JButton...buttons)
     {
         Font font=new Font("TimesRoman", Font.BOLD, (int)(13*Controller.SCALE));
         this.setLayout(new FlowLayout(FlowLayout.CENTER));
-        lives=new JLabel("lives: ");
-        level=new JLabel("stage: ");
-        score=new JLabel("score: ");
+        liveslab=new JLabel("lives: ");
+        levellab=new JLabel("stage: ");
+        scorelab=new JLabel("score: ");
         popup=new JLabel("STAGE ");
         death=new JLabel("You Died!");
         temp=new JLabel();
-        lives.setFont(font);
-        level.setFont(font);
-        score.setFont(font);
+        liveslab.setFont(font);
+        levellab.setFont(font);
+        scorelab.setFont(font);
         temp.setFont(font);
         font=new Font("TimesRoman", Font.BOLD, (int)(50*Controller.SCALE));
         popup.setFont(font);
         death.setFont(font);
         popup.setForeground(Color.WHITE);
         death.setForeground(Color.WHITE);
-        stage=0;
-        left=0;
-        points=0;
+        level=0;
+        lives=0;
+        score=0;
         menu(275, 75, null, buttons);
         try
         {
@@ -67,10 +68,15 @@ class View extends JPanel
             e.printStackTrace();
         }
     }
+
+    /**
+     * malowanie tla w grze.
+     * @param g obiekt Graphics
+     */
     protected void paintComponent(Graphics g)
     {
         super.paintComponent(g);
-        if(left!=0)
+        if(lives!=0)
         {
             g.drawImage(backdrop, 0, 0-height, this);
             g.setColor(Color.WHITE);
@@ -82,7 +88,15 @@ class View extends JPanel
             g.fillRect(0, 0, 500, 500);
         }
     }
-    public void menu(int x, int y, String string, JButton...buttons)
+
+    /**
+     * otworzenie menu z odpowiednim rozmiarem, labelem oraz buttonami.
+     * @param x rozmiar x
+     * @param y rozmiar y
+     * @param string jaki ma byc label
+     * @param buttons buttony w menu
+     */
+    void menu(int x, int y, String string, JButton...buttons)
     {
         quit();
         this.removeAll();
@@ -102,13 +116,17 @@ class View extends JPanel
         gamemenu.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setFocusable(true);
     }
-    public void game()
+
+    /**
+     * otwarcie zasadniczego Jframe z gra
+     */
+    void game()
     {
         quit();
         this.removeAll();
-        this.add(lives);
-        this.add(level);
-        this.add(score);
+        this.add(liveslab);
+        this.add(levellab);
+        this.add(scorelab);
         this.add(popup);
         this.add(death);
         game = new JFrame("Galaxy");
@@ -120,24 +138,46 @@ class View extends JPanel
         game.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setFocusable(true);
     }
-    public void dowin()
+
+    /**
+     * funkcje do zrobienia po wygraniu poziomu, i.e. wyswietlenie odpowiedniego labela
+     */
+    void dowin()
     {
-        popup.setText("STAGE "+stage);
+        popup.setText("STAGE "+level);
         popup.setVisible(true);
     }
-    public void dolose(JButton button)
+
+    /**
+     * funkcje do zrobienia jezeli gracz przegra
+     * @param button button do menu game over
+     */
+    void dolose(JButton button)
     {
         quit();
         this.setLayout(new FlowLayout(FlowLayout.CENTER));
         menu(500, 250, "Game Over", button);
-        this.add(level);
-        this.add(score);
+        this.add(levellab);
+        this.add(scorelab);
         back=button;
         positions=null;
     }
+
+    /**
+     * zamkniecie gamemenu i game, jezeli sa
+     */
     private void quit() {if(game!=null) game.dispose(); if(gamemenu!=null) gamemenu.dispose();}
-    public void death(){death.setVisible(true);}
-    public void load(int[][]...arr)
+
+    /**
+     * wyswietlenie informacji o smierci
+     */
+    void death(){death.setVisible(true);}
+
+    /**
+     * zaladowanie danych podanych przez kontroler o pozycjach i numerach obrazow
+     * @param arr tablica danych
+     */
+    void load(int[][]...arr)
     {
         height-=3;
         if (height<=0) height=(int) (Controller.SIZE*Controller.RATIO);
@@ -157,7 +197,19 @@ class View extends JPanel
             }
         }
     }
-    public void loadmisc(int liv, int scor, int lvl) {left=liv; points=scor; stage=lvl;}
+
+    /**
+     * pozsotale dane do zaladowania
+     * @param liv pozostale zycia
+     * @param pts wynik
+     * @param lvl poziom
+     */
+    void loadmisc(int liv, int pts, int lvl) {lives=liv; score=pts; level=lvl;}
+
+    /**
+     * funkcja paint malujaca wszystkie elementy i ustawiajaca labely na miejscu
+     * @param g obiekt Graphics
+     */
     public void paint(Graphics g)
     {
         super.paint(g);
@@ -165,21 +217,21 @@ class View extends JPanel
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         popup.setLocation(Controller.SIZE-100, Controller.SIZE/2);
         death.setLocation(Controller.SIZE-110, Controller.SIZE*4/5);
-        if(left==0)
+        if(lives==0)
         {
-            level.setLocation(220, 100);
-            score.setLocation(220, 130);
-            if(stage>0) temp.setLocation(210, 0);
+            levellab.setLocation(220, 100);
+            scorelab.setLocation(220, 130);
+            if(level>0) temp.setLocation(210, 0);
             if(back!=null) back.setLocation(220, 50);
         }
         else
         {
-            level.setLocation(0, (int)(Controller.SIZE*Controller.RATIO-55));
-            lives.setLocation((int)(75*Controller.SCALE), (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE));
-            score.setLocation((int)(150*Controller.SCALE), (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE));
-            level.setText("stage: "+stage);
-            lives.setText("lives: "+left);
-            score.setText("score: "+points);
+            levellab.setLocation(0, (int)(Controller.SIZE*Controller.RATIO-55));
+            liveslab.setLocation((int)(75*Controller.SCALE), (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE));
+            scorelab.setLocation((int)(150*Controller.SCALE), (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE));
+            levellab.setText("stage: "+level);
+            liveslab.setText("lives: "+lives);
+            scorelab.setText("score: "+score);
         }
         if(positions!=null)
         {

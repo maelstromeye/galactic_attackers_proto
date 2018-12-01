@@ -1623,18 +1623,41 @@ class Model
          */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * Glitch teleportuje sie losowo po planszy i zawsze celuje w gracza. Ma zmienna
+     * magazine i counter i 3 rakiety. Counter sluzy do generacji liczb pseudolosowych.
+     */
     private static class Glitch extends Attacker
     {
-        public static final int radius;
-        public static final double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza punktow
+         */
+        static final double weight;
         private int magazine;
         private double counter;
+
+        /**
+         * wlasny generator liczb pseudolosowych
+         * @return liczba pseudoloswa
+         */
         private int evolve() {counter=(counter*seed[0]*947*109/107+counter*seed[0]*947*109/107)%(5*Controller.SIZE); return (int) counter;}
         static
         {
             radius=(int)(26*Controller.SCALE);
             weight=0.25;
         }
+
+        /**
+         * konstruktor ustawia dane tka jak je sie da, i ustala stan poczatkowy
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         * @param ctr stan poczatko0wy generatora liczb pseudolosowych
+         */
         Glitch(int x, int y, double ctr)
         {
             super(x, y, 0, 0);
@@ -1644,6 +1667,11 @@ class Model
             counter=ctr;
             magazine=0;
         }
+
+        /**
+         * zasadnicza funkcja teleportacji i zmian w modelu
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             magazine+=i;
@@ -1660,6 +1688,10 @@ class Model
             }
             moverocket(i);
         }
+
+        /**
+         * zasadnicza funkcja strzalu, celuje w gracza
+         */
         public void shoot()
         {
             if(magazine<=250) magazine=0;
@@ -1667,20 +1699,52 @@ class Model
             rockets[shot]=new Diagmissile(crdx, crdy, true, Math.abs(((double)Ship.HEIGHT-crdy)/((double)ship.getx()-crdx)), ship.getx()>crdx);
             shot++;
         }
-        public void reload() {shot=0; rockets=new Missile[1];}
+
+        /**
+         * reset pociskow
+         */
+        public void reload() {shot=0; rockets=new Missile[3];}
+
+        /**
+         * getter promienia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * Gargantua jest bossem, porusz sie po przyblizeniu trojkata, prawie caly czas strzela i ma 3
+     * rozne specjalne ataki. Posiada rowniez wlasny generator liczb pseudolosowych, oraz enumeracje
+     * stanu ktora mowi jaki atak obecnie jest wykonywany. Zmienna center pomaga w ruchu po trojkacie.
+     * Z powodu duzej ilosci pociskow jakie gargantua posiada, zmienna rockets jest tu lista.
+     */
     private static class Gargantua extends Attacker
     {
-        public static final int radius;
-        public static double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zasadnicza zmienna punktow
+         */
+        static final double weight;
         private enum Attack {hive, laser, barrage, blank}
         Attack attack;
         private Vector<Missile> rockets = new Vector<>();
         private static double velocity;
         private double random;
         private int magazine, center, counter, countdown, minions;
+
+        /**
+         * wlasny generator liczb pseudolosowych
+         * @return liczba pseudolosowa
+         */
         private int evolve() {random=(random*seed[0]*947*109/107+random*seed[0]*947*109/107)%5000; return (int) random;}
         static
         {
@@ -1688,6 +1752,33 @@ class Model
             weight=100;
             velocity=2*Controller.SCALE;
         }
+
+        /**
+         * konstruktor ustawia zmienne jak mu sie poda i ustala stan poczatkowy
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         * @param ll limit z lewej
+         * @param ctr stan pcozatkowy generatora liczb pseudolosowych
+         */
+        Gargantua(int x, int y, int ll, double ctr)
+        {
+            super(x, y, ll, x-ll+radius);
+            spritenum=10;
+            health=100;
+            random=ctr;
+            magazine=0;
+            center=x;
+            direction=true;
+            counter=0;
+            attack=Attack.blank;
+            minions=0;
+            countdown=0;
+        }
+
+        /**
+         * 1. atak specjalny - gargantua wypuszcza 10 Smallfry na plansze przez 5 sekund.
+         * @param i czas jaki uplynal globalnie
+         */
         private void hive(int i)
         {
             counter+=i;
@@ -1706,6 +1797,12 @@ class Model
                 velocity=2;
             }
         }
+
+        /**
+         * 2. atak specjalny - gargantua wystrzeliwuje kilkadziesiat pociskow w losowych
+         * kierunkach przez 5 sekund.
+         * @param i czas jaki uplynal globalnie
+         */
         private void barrage(int i)
         {
             velocity=0;
@@ -1722,6 +1819,11 @@ class Model
                 velocity=2;
             }
         }
+
+        /**
+         * 3. atak specjalny - gargantua strzela przed siebie laserem przez 2.5 sekundy.
+         * @param i czas jaki uplynal globalnie
+         */
         private void laser(int i)
         {
             velocity=0;
@@ -1749,20 +1851,6 @@ class Model
                 }
                 countdown=0;
             }
-        }
-        Gargantua(int x, int y, int ll, double ctr)
-        {
-            super(x, y, ll, x-ll+radius);
-            spritenum=10;
-            health=100;
-            random=ctr;
-            magazine=0;
-            center=x;
-            direction=true;
-            counter=0;
-            attack=Attack.blank;
-            minions=0;
-            countdown=0;
         }
         public void movement(int i)
         {
@@ -1807,18 +1895,33 @@ class Model
             else if(attack==Attack.barrage) barrage(i);
             else if(attack==Attack.laser) laser(i);
         }
+
+        /**
+         * funkcja strzalu ciaglego, zawieszana podczas lasera
+         */
         public void shoot()
         {
             magazine=0;
             rockets.add(new Missile(crdx, crdy, true));
             shot++;
         }
+
+        /**
+         * funkcja wyciagajaca pocisk z pozycji na liscie
+         * @param k indeks na liscie
+         * @return pocisk z pozycji k, badz nowy pocisk lasera
+         */
         public Missile extract(int k)
         {
             if(shot==0||(k>=shot&&attack!=Attack.laser)) return null;
             if(k<rockets.size()) return rockets.get(k);
             return new Missile(crdx-radius+(k-rockets.size())*((float)radius/7)+((float)k/3)*((float)radius/7), Ship.HEIGHT, true);
         }
+
+        /**
+         * funkcja pomocnicza ruchu
+         * @param i dlugosc kroku
+         */
         protected void moverocket(int i)
         {
             if(shot==0) return;
@@ -1833,8 +1936,22 @@ class Model
                 }
             }
         }
+
+        /**
+         * reset pociskow
+         */
         public void reload() {shot=0; rockets.clear(); magazine=0; counter=0; attack=Attack.blank; countdown=0; velocity=2; spritenum=10;}
+
+        /**
+         * getter prmienia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
 }
