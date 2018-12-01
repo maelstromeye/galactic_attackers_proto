@@ -1,7 +1,6 @@
 import javax.swing.*;
 import java.awt.*;
 import javax.imageio.*;
-import java.awt.event.KeyEvent;
 import java.io.*;
 class View extends JPanel
 {
@@ -49,19 +48,19 @@ class View extends JPanel
         menu(275, 75, null, buttons);
         try
         {
-            sprite0 = ImageIO.read(new File("resources/Sprite0.png")).getScaledInstance((int) (Controller.SCALE*20), -1, Image.SCALE_SMOOTH);
-            sprite1 = ImageIO.read(new File("resources/Sprite1.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
-            sprite2 = ImageIO.read(new File("resources/Sprite2.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
-            sprite3 = ImageIO.read(new File("resources/Sprite3.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
-            sprite4 = ImageIO.read(new File("resources/Sprite4.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);
-            sprite5 = ImageIO.read(new File("resources/Sprite5.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);
-            sprite6 = ImageIO.read(new File("resources/Sprite6.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);
-            sprite7 = ImageIO.read(new File("resources/Sprite7.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);
-            sprite8 = ImageIO.read(new File("resources/Sprite8.png")).getScaledInstance((int) (Controller.SCALE*30), -1, Image.SCALE_SMOOTH);
-            sprite9 = ImageIO.read(new File("resources/Sprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            sprite0=ImageIO.read(new File("resources/Sprite0.png")).getScaledInstance((int) (Controller.SCALE*20), -1, Image.SCALE_SMOOTH);
+            sprite1=ImageIO.read(new File("resources/Sprite1.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            sprite2=ImageIO.read(new File("resources/Sprite2.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            sprite3=ImageIO.read(new File("resources/Sprite3.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            sprite4=ImageIO.read(new File("resources/Sprite4.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);
+            sprite5=ImageIO.read(new File("resources/Sprite5.png")).getScaledInstance((int) (Controller.SCALE*40), -1, Image.SCALE_SMOOTH);
+            sprite6=ImageIO.read(new File("resources/Sprite6.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);
+            sprite7=ImageIO.read(new File("resources/Sprite7.png")).getScaledInstance((int) (Controller.SCALE*60), -1, Image.SCALE_SMOOTH);
+            sprite8=ImageIO.read(new File("resources/Sprite8.png")).getScaledInstance((int) (Controller.SCALE*30), -1, Image.SCALE_SMOOTH);
+            sprite9=ImageIO.read(new File("resources/Sprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
             Gargantua=ImageIO.read(new File("resources/Gargantua.png")).getScaledInstance((int) (Controller.SCALE*200), -1, Image.SCALE_SMOOTH);
-            splinteredsprite9 = ImageIO.read(new File("resources/SplinteredSprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
-            backdrop = ImageIO.read(new File("resources/Backdrop.png")).getScaledInstance((int) (Controller.SCALE*2000), -1, Image.SCALE_SMOOTH);
+            splinteredsprite9=ImageIO.read(new File("resources/SplinteredSprite9.png")).getScaledInstance((int) (Controller.SCALE*50), -1, Image.SCALE_SMOOTH);
+            backdrop=ImageIO.read(new File("resources/Backdrop.png")).getScaledInstance((int) (Controller.SCALE*2000), -1, Image.SCALE_SMOOTH);
         }
         catch(IOException e)
         {
@@ -75,7 +74,7 @@ class View extends JPanel
         {
             g.drawImage(backdrop, 0, 0-height, this);
             g.setColor(Color.WHITE);
-            g.fillRect(0, (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE), (int)(220*Controller.SCALE), (int)(50*Controller.SCALE));
+            g.fillRect(0, (int)(Controller.SIZE*Controller.RATIO-55*Controller.SCALE), (int)(250*Controller.SCALE), (int)(50*Controller.SCALE));
         }
         else
         {
@@ -112,7 +111,6 @@ class View extends JPanel
         this.add(score);
         this.add(popup);
         this.add(death);
-        stage=0;
         game = new JFrame("Galaxy");
         game.add(this);
         game.setSize(2*Controller.SIZE, (int)(Controller.SIZE*Controller.RATIO));
@@ -131,11 +129,10 @@ class View extends JPanel
     {
         quit();
         this.setLayout(new FlowLayout(FlowLayout.CENTER));
-        menu(500, 500, "Game Over", button);
+        menu(500, 250, "Game Over", button);
         this.add(level);
         this.add(score);
         back=button;
-        stage=0;
         positions=null;
     }
     private void quit() {if(game!=null) game.dispose(); if(gamemenu!=null) gamemenu.dispose();}
@@ -172,7 +169,7 @@ class View extends JPanel
         {
             level.setLocation(220, 100);
             score.setLocation(220, 130);
-            temp.setLocation(210, 0);
+            if(stage>0) temp.setLocation(210, 0);
             if(back!=null) back.setLocation(220, 50);
         }
         else

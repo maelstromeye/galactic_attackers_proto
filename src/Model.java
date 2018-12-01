@@ -1,19 +1,30 @@
 import java.util.*;
-import java.util.zip.CheckedOutputStream;
 
+/**
+ * Model w modelu MVC. Ma w sobie dane gry, oraz dokonuje na nich manipulacji.
+ * pause jest zmienna boolean mowiaca czy jest pauza. difficulty sluzy
+ * generatorowi poziomow do generacji poziomow. modifier sluzy do generacji
+ * proceduralnej liczb odpowiadajacych za strzelanie przeciwnikow. ship jest
+ * statkiem gracza. seed jest seedem generatora poziomow. list jest lista
+ * przeciwnikow. freemiss jest lista pociskow nieprzypisanych do przeciwnika.
+ * queue jest lista przeciwnikow czekajacych na dodanie do listy zasadniczej.
+ */
 class Model
 {
     private boolean pause;
-    private int difficulty;
-    private int lives;
-    private int stage;
-    private double score;
+    private int difficulty, lives, stage;
+    private double score, modifier;
     private static Ship ship;
     private static double[] seed;
     private static Vector<Attacker> list;
-    private double modifier;
     private Vector<Missile> freemiss;
     private static List<Attacker> queue;
+
+    /**
+     * konstuktor Modelu ustawia warunki poczatkowe, liczbe zyc, wynik, poziom,
+     * "ilosc" trudnosci, losuje seed, oraz ustawia zmienna modifier sluzaca do
+     * proceduralnego generowania liczb odpowiadajacych za strzelanie.
+     */
     Model()
     {
         pause=false;
@@ -37,13 +48,35 @@ class Model
         modifier=seed[0]*107/109;
         if(modifier>0.2) modifier=modifier/2;
         generator();
-        freemiss=null;
+        freemiss=new Vector<>();
         queue=new Vector<>();
     }
+
+    /**
+     * funkcja pomocnicza konstruktora, genruje losowa liczbe z zakresu (min;max)
+     * @param min jedna z granic zakresu
+     * @param max jedna z granic zakresu
+     * @return liczba losowa
+     */
     private double randfrom(double min, double max) {return (Math.random()*Math.abs(max-min))+((min<=max)?min:max);}
+
+    /**
+     * funkcja pomocnicza generatora, sluzy do generacji liczb pseudolosowych z zakresu
+     * (seed[0]/2;seed[0]*3/2).
+     * @return liczba pseudolosowa z zakresu (2/3;2)
+     */
     private double evolve() {seed[10]=(seed[10]*(seed[0]*947*109/107)+(seed[0]*947*109/107))%seed[0]+seed[0]/2; return seed[0]/seed[10];}
-    public void loadseed(double[] arr){seed=arr;}
-    public void generator()
+
+    /**
+     * setter seedu
+     * @param arr nowy seed
+     */
+    void loadseed(double[] arr){seed=arr;}
+
+    /**
+     * generator poziomow dzialajacy na podstawie liczb pseudolosowych.
+     */
+    void generator()
     {
         int y, x, smallfries, runners, abnormals, thiccboyes, hivewitches, laserboys, lamps, glitches;
         double e;
@@ -174,11 +207,20 @@ class Model
             }
         }
     }*/
-    public void boss()
+
+    /**
+     * generator poziomu z bossem
+     */
+    void boss()
     {
         list.add(new Gargantua(Controller.SIZE, Gargantua.radius,500, seed[0]/seed[10]));
     }
-    public int[][] getPositions()
+
+    /**
+     * zwraca pozycje przeciwnikow i gracza, oraza ich numery modeli, w postaci tablicy intow
+     * @return pozycje gracza i przeciwnikow zakodowane za pomoca tablicy intow
+     */
+    int[][] getPositions()
     {
         if(pause) return null;
         int[][] data=new int[list.size()+((ship==null)?0:1)][4];
@@ -196,19 +238,24 @@ class Model
         data[list.size()][3]=100;
         return data;
     }
-    public int[][] getRockets()
+
+    /**
+     * getter pozycji pociskow przeciwnikow i pociskow "wolnych"
+     * @return pozycje pociskow przeciwnikow w postaci tablicy intow
+     */
+    int[][] getRockets()
     {
         if(pause) return null;
-        int k=0;
+        int k=0, sum=sumrock();
         Missile missile;
-        int[][] data=new int[sumrock()][4];
-        for(int i=0; i<list.size(); i++)
+        int[][] data=new int[sum+freemiss.size()][4];
+        for(Attacker a: list)
         {
-            for (int j=0; j<list.get(i).gets(); j++)
+            for (int j=0; j<a.gets(); j++)
             {
-                if (list.get(i).extract(j)!=null)
+                if (a.extract(j)!=null)
                 {
-                    missile=list.get(i).extract(j);
+                    missile=a.extract(j);
                     data[k][0]=missile.getx();
                     data[k][1]=missile.gety();
                     data[k][2]=1;
@@ -218,9 +265,21 @@ class Model
                 }
             }
         }
+        for(int i=0; i<freemiss.size(); i++)
+        {
+            data[sum+i][0]=freemiss.get(i).getx();
+            data[sum+i][1]=freemiss.get(i).gety();
+            data[sum+i][2]=1;
+            data[sum+i][3]=-2;
+        }
         return data;
     }
-    public int[][] getMissiles()
+
+    /**
+     * getter pozycji pociskow gracza
+     * @return pozycje pociskow gracza w postaci tablicy intow
+     */
+    int[][] getShipRockets()
     {
         if(pause) return null;
         if(ship==null) return null;
@@ -238,21 +297,12 @@ class Model
         }
         return data;
     }
-    public int[][] getfree()
-    {
-        if(pause) return null;
-        if(freemiss==null) return null;
-        int[][] data=new int[freemiss.size()][4];
-        for(int i=0; i<freemiss.size(); i++)
-        {
-            data[i][0]=freemiss.get(i).getx();
-            data[i][1]=freemiss.get(i).gety();
-            data[i][2]=1;
-            data[i][3]=-2;
-        }
-        return data;
-    }
-    public void movement(int i)
+
+    /**
+     * zasadnicza funkcja ruchu, rusza kazdy obiekt w modelu
+     * @param i dlugosc kroku
+     */
+    void movement(int i)
     {
         if(pause) return;
         if(i==0) return;
@@ -264,7 +314,7 @@ class Model
         }
         list.addAll(queue);
         queue.clear();
-        if(freemiss!=null)
+        if(!freemiss.isEmpty())
         {
             for(int j=0; j<freemiss.size(); j++)
             {
@@ -274,42 +324,50 @@ class Model
                     freemiss.remove(j);
                     j--;
                 }
-                if(freemiss.isEmpty())
-                {
-                    freemiss=null;
-                    break;
-                }
+                if(freemiss.isEmpty()) break;
             }
         }
-        if(ship!=null)
-        {
-            ship.movement(1,4);
-            ship.shoot(2);
-        }
+        if(ship!=null) ship.movement(i);
     }
-    public boolean checkwin()
+
+    /**
+     * sprawdza czy zwyciestwo osiagniate
+     * @return czy gracz juz wygral
+     */
+    boolean checkWin()
     {
         if(list.isEmpty())
         {
             difficulty+=25;
             stage++;
             ship.reload();
-            freemiss=null;
+            freemiss.clear();
             ship.setx(Controller.SIZE);
             return true;
         }
         else return false;
     }
-    public void skip()
+
+    /**
+     * NIE NALEZY UZYWAC W OSTATECZNEJ WERSJI
+     * funkcja do przeciazania generatora poziomow
+     */
+    void skip()
     {
         list.clear();
         difficulty+=25;
         stage++;
         if(ship!=null) ship.reload();
         else ship=new Ship();
+        freemiss.clear();
         generator();
     }
-    public boolean hit()
+
+    /**
+     * sprawdza kolizje z pociskami u gracza i przeciwnikow
+     * @return czy gracz zostal trafiony
+     */
+    boolean hit()
     {
         if(pause) return false;
         for(Attacker a:list)
@@ -320,7 +378,7 @@ class Model
                 return true;
             }
         }
-        int[][] rockets=getMissiles();
+        int[][] rockets=getShipRockets();
         Missile missile;
         if (rockets!=null)
         {
@@ -342,14 +400,13 @@ class Model
                                     k++;
                                     continue;
                                 }
-                                if(freemiss==null) freemiss=new Vector<>();
                                 freemiss.add(missile);
                             }
                             score+=list.get(i).getscore();
                             list.remove(i);
                         }
-                        ship.shotdown(j);
-                        rockets = getMissiles();
+                        ship.hit(j);
+                        rockets = getShipRockets();
                         break;
                     }
                 }
@@ -357,9 +414,7 @@ class Model
         }
         int i=sumrock();
         if(i<=0) return false;
-        rockets=new int[i+((freemiss==null)?0:freemiss.size())][4];
-        System.arraycopy(getRockets(), 0, rockets, 0, i);
-        if(freemiss!=null) System.arraycopy(getfree(), 0, rockets, i, freemiss.size());
+        rockets=getRockets();
         if(ship!=null)
         {
             for(int[] j: rockets)
@@ -372,27 +427,81 @@ class Model
         }
         return false;
     }
-    public void shotdown()
+
+    /**
+     * gracz zostal trafiony
+     */
+    void shotdown()
     {
         lives--;
         ship=null;
         for (Attacker a : list) a.reload();
-        freemiss=null;
+        freemiss.clear();
     }
+
+    /**
+     * ile pociskow jest obecnie w grze
+     * @return ilosc pociskow w grze
+     */
     private int sumrock() {int i=0; for(Attacker a:list) i+=a.gets(); return i;}
-    public void pause() {pause=!pause; if(ship==null) ship=new Ship(); else if(!pause) ship.fullstop();}
-    public boolean getpause() {return pause;}
-    public void moveship(int i, int j) {if(ship!=null&&!pause) ship.movement(i, j);}
-    public void shoot(int i) {if(pause&&i!=0) {pause();} else if(ship!=null) ship.shoot(i);}
-    public int getlives() {return lives;}
-    public int getscore() {return (int) score;}
-    public int getstage() {return stage;}
+
+    /**
+     * zmien stan pauzy
+     */
+    void pause() {pause=!pause; if(ship==null) ship=new Ship(); else if(!pause) ship.fullstop();}
+
+    /**
+     * getter stanu pauzy
+     * @return stan pauzy
+     */
+    boolean getpause() {return pause;}
+
+    /**
+     * logika statku na zasadzie automatu stanow
+     * @param j klikniecie strzalki (<0 to w lewo, >0 to w prawo, 1 to klik, 2 to release)
+     */
+    void logic(int j) {if(ship!=null&&!pause) ship.logic(j);}
+
+    /**
+     * strzal statku
+     * @param b true - spacja kliknieta, false - spacja odkliknieta
+     */
+    void shoot(boolean b) {if(pause&&b) {pause();} else if(ship!=null) ship.shoot(b);}
+
+    /**
+     * getter zyc
+     * @return liczba zyc
+     */
+    int getlives() {return lives;}
+
+    /**
+     * getter wyniku
+     * @return wynik
+     */
+    int getscore() {return (int) score;}
+
+    /**
+     * getter poziomu
+     * @return poziom
+     */
+    int getstage() {return stage;}
+
+    /**
+     * statek gracza, ruch odbywa sie na zasadzie automatu stanow wyznaczanego przez dwa bity: left i right, na podstawie ktorego
+     * odczytywana jest predkosc, strzal na zasadzie timera counter.
+     */
     private static class Ship
     {
-        public static final int radius;
-        public static final int HEIGHT;
+        /**
+         * rozmiar hitboxa statku
+         */
+        static final int radius;
+        /**
+         * wysokosc na jakiej znajduje sie statek
+         */
+        static final int HEIGHT;
         private double crdx, velocity;
-        private int shot, counter;
+        private int counter;
         private Vector<Missile> rockets;
         private boolean left, right;
         static
@@ -400,33 +509,74 @@ class Model
             HEIGHT=(int)(Controller.SIZE*Controller.RATIO)-75;
             radius=(int)(10*Controller.SCALE);
         }
+
+        /**
+         * konstruktor statku, ustawia warunki poczatkowe i ustawia statek na srodku ekranu.
+         */
         Ship()
         {
             crdx=Controller.SIZE;
-            shot=0;
             velocity=0;
             rockets=new Vector<>();
             counter=0;
             left=false;
             right=false;
         }
-        public int getx() {return (int) crdx;}
-        public int gets() {return  shot;}
-        public void setx(int x) {crdx=x;}
-        public void reload() {rockets.clear(); shot=0;}
-        public void fullstop() {left=false; right=false; velocity=0; counter=0;}
-        public Missile extract(int k)
+
+        /**
+         * getter wspolrzednej x
+         * @return wspolrzedna x
+         */
+        int getx() {return (int) crdx;}
+
+        /**
+         * getter liczby wystrzelonych pociskow
+         * @return lcizba wystrzelonych pociskow
+         */
+        int gets() {return  rockets.size();}
+
+        /**
+         * setter wspolrzednej x
+         * @param x nowa wspolrzedna x
+         */
+        void setx(int x) {crdx=x;}
+
+        /**
+         * wyczyszczenie pociskow gracza
+         */
+        void reload() {rockets.clear();}
+
+        /**
+         * reset statku do warunkow poczatkowych
+         */
+        void fullstop() {left=false; right=false; velocity=0; counter=0;}
+
+        /**
+         * wyciagniecie pocisku z pozycji
+         * @param k pozycja na liscie
+         * @return obiekt typu Missile ktory sie tam znajduje
+         */
+        Missile extract(int k)
         {
-            if((shot==0)||(k>=shot)) return null;
+            if((rockets.isEmpty())||(k>=rockets.size())) return null;
             return rockets.get(k);
         }
-        public void shotdown(int i)
+
+        /**
+         * pocisk o indeksie i trafil w cel, nalezy sie go pozbyc
+         * @param i indeks na liscie
+         */
+        void hit(int i)
         {
-            if(i>=shot) return;
+            if(i>=rockets.size()) return;
             rockets.remove(i);
-            shot--;
         }
-        public void movement(int i, int j)
+
+        /**
+         * automat stanow ruchu statku
+         * @param j id eventu: <0 w lewo, >0 w prawo, 1 - wcisnieto, 2 - wypuszcono
+         */
+        void logic(int j)
         {
             if (j==-1)
             {
@@ -452,63 +602,109 @@ class Model
                 else velocity=0;
                 right=false;
             }
-            else if(j==4)
-            {
-                if(counter!=0) counter++;
-                for (int k=0; k<shot; k++)
-                {
-                    rockets.get(k).movement(i);
-                    if(rockets.get(k).gety()<=0)
-                    {
-                        rockets.remove(k);
-                        k--;
-                        shot--;
-                    }
-                }
-                if (!((velocity<=0)&&(crdx <= radius))&&!((velocity>=0)&&(crdx>=Controller.SIZE*2-radius*3))) crdx+=velocity*i;
-            }
         }
-        public void shoot(int i)
+
+        /**
+         * zasadnicza funkcja ruchu statku wywolywana przez petle
+         * @param i dlugosc kroku
+         */
+        void movement(int i)
         {
-            if(i==1) {if(counter%30==0) counter=1;}
-            else if(i==0)
-            {
-                counter=0;
-                return;
-            }
             if(counter%30==1)
             {
                 rockets.add(new Missile(crdx, HEIGHT + 1, false));
                 counter++;
-                shot++;
             }
+            if(counter!=0) counter++;
+            for (int k=0; k<rockets.size(); k++)
+            {
+                rockets.get(k).movement(i);
+                if(rockets.get(k).gety()<=0)
+                {
+                    rockets.remove(k);
+                    k--;
+                }
+            }
+            if (!((velocity<=0)&&(crdx <= radius))&&!((velocity>=0)&&(crdx>=Controller.SIZE*2-radius*3))) crdx+=velocity*i;
+        }
+
+        /**
+         * wystrzal pocisku
+         * @param b true - spacja wcisnieta, false - wypuszczona
+         */
+        void shoot(boolean b)
+        {
+            if(b) {if(counter%30==0) counter=1;}
+            else counter=0;
         }
     }
+
+    /**
+     * pocisk wystrzelony prosto przez gracza badz przeciwnika, zwiera w sobie swoje
+     * wspolrzedne, dane czy jest przyjazny i swoja predkosc.
+     */
     private static class Missile
     {
         protected double crdx, crdy;
         protected boolean hostile;
         protected static final double velocity=5*Controller.SCALE;
         Missile(){}
+
+        /**
+         * konstruktor ustawia dane tak jak mu zostana podane
+         * @param x wspolrzedna x
+         * @param y wpolsrzedna y
+         * @param b czy jest wrogi graczowi
+         */
         Missile(double x, double y, boolean b)
         {
             crdx=x;
             crdy=y;
             hostile=b;
         }
+
+        /**
+         * zasadnicza funkcja ruchu pocisku
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             if(hostile) crdy+=velocity*i;
             else crdy-=velocity*i;
         }
-        public int getx() {return (int)crdx;}
-        public int gety() {return (int)crdy;}
+
+        /**
+         * getter wspolrzednej x
+         * @return wpolrzedna x
+         */
+        int getx() {return (int)crdx;}
+
+        /**
+         * getter wspolrzednej y
+         * @return wspolrzedna y
+         */
+        int gety() {return (int)crdy;}
     }
-    private static class Vertmissile extends Missile
+
+    /**
+     * pocisk wystrzelony diagonalnie przez przeciwnika badz gracza(nie zdarza sie), dziecko
+     * prostego pocisku, zawiera dodatkowo predkosc w wymiarze x, y oraz kierunek w wymiarze x.
+     */
+    private static class Diagmissile extends Missile
     {
         private double xvelocity, yvelocity;
         private boolean xdirection;
-        Vertmissile(double x, double y, boolean b, double ratio, boolean dir)
+
+        /**
+         * konstruktor ustawia dane tak jak mu zostarna podane, a nastepnie za pomoca argumentu
+         * ratio oblicza predkosc w wymiarze x i y
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         * @param b czy jest wrogi
+         * @param ratio stosunek predkosci y do predkosci x
+         * @param dir kierunek w x
+         */
+        Diagmissile(double x, double y, boolean b, double ratio, boolean dir)
         {
             crdx=x;
             crdy=y;
@@ -517,26 +713,40 @@ class Model
             yvelocity=Math.sqrt(velocity*velocity-xvelocity*xvelocity);
             xdirection=dir;
         }
+
+        /**
+         * zasadnicza funkcja ruchu pocisku
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             if(hostile) crdy+=yvelocity*i;
             else crdy-=yvelocity*i;
             if(xdirection) crdx+=xvelocity*i;
-            else crdx-=(int) xvelocity*i;
+            else crdx-=xvelocity*i;
         }
     }
+
+    /**
+     * Szablon kazdego przeciwnika w grze, Attacker zawiera dane i abstrakcyjne funkcje ktore kazdy
+     * przeciwnik musi miec, czyli tablice pociskow, numer modelu, wspolrzedna w x i y, ilosc zycia,
+     * kierunek w x, granice ruchu z prawej i lewej strony, oraz liczbe wystrzelonych pociskow.
+     */
     private abstract static class Attacker
     {
         protected Missile[] rockets;
-        protected int spritenum;
-        protected double crdx;
-        protected double crdy;
-        protected int health;
+        protected double crdx, crdy;
         protected boolean direction;
-        protected int limitr;
-        protected int limitl;
-        protected int shot;
+        protected int spritenum, health, limitr, limitl, shot;
         Attacker(){}
+
+        /**
+         * konstruktor ustawia dane tak jak mu sie je poda
+         * @param x wspolrzedna x
+         * @param y wspolrzenda y
+         * @param ll limit ruchu z lewej strony
+         * @param lr limit ruchu z prawej strony
+         */
         Attacker(int x, int y, int ll, int lr)
         {
             shot=0;
@@ -545,27 +755,90 @@ class Model
             limitr=lr;
             limitl=ll;
         }
-        public int getx() {return (int)crdx;}
-        public int gety() {return (int)crdy;}
-        public int gets() {return shot;}
-        public int getspr() {return spritenum;}
-        public void hit() {health--;}
-        public abstract int getr();
-        public abstract double getscore();
-        public abstract void reload();
-        public abstract void movement(int i);
-        public boolean isgone() {return health<=0;}
-        public void shoot()
+
+        /**
+         * getter wspolrzednej x
+         * @return wspolrzedna x
+         */
+        int getx() {return (int)crdx;}
+
+        /**
+         * getter wspolrzednej y
+         * @return wspolrzedna y
+         */
+        int gety() {return (int)crdy;}
+
+        /**
+         * getter liczby wystrzelonych pociskow
+         * @return liczba wystrzelonych pociskow
+         */
+        int gets() {return shot;}
+
+        /**
+         * getter numeru modelu
+         * @return numer modelu
+         */
+        int getspr() {return spritenum;}
+
+        /**
+         * przeciwnik zostal trafiony
+         */
+        void hit() {health--;}
+
+        /**
+         * abstrakcyjny getter promienia
+         * @return promien dziecka
+         */
+        abstract int getr();
+
+        /**
+         * abstrakcyjny getter punktow za zabicie przeciwnika
+         * @return liczba punktow
+         */
+        abstract double getscore();
+
+        /**
+         * abstrakcyjne "przeladowanie", resetuje wystrzelone pociski
+         */
+        abstract void reload();
+
+        /**
+         * abstrakcyjna zasadnicza funkja ruchu
+         * @param i dlugosc kroku
+         */
+        abstract void movement(int i);
+
+        /**
+         * czy jeszcze zyje
+         * @return czy jeszcze zyje
+         */
+        boolean isgone() {return health<=0;}
+
+        /**
+         * podstwaowa funkcja wystrzalu
+         */
+        void shoot()
         {
             if(shot>=rockets.length) return;
             rockets[shot]=new Missile(crdx, crdy, true);
             shot++;
         }
-        public Missile extract(int k)
+
+        /**
+         * getter pocisku z pozycji k
+         * @param k indeks na liscie
+         * @return pocisk z pozycji k
+         */
+        Missile extract(int k)
         {
             if((shot==0)||(k>=shot)) return null;
             return rockets[k];
         }
+
+        /**
+         * funkcja pomocnicza ruchu, porusza rakietami
+         * @param i dlugosc kroku
+         */
         protected void moverocket(int i)
         {
             if(shot==0) return;
@@ -587,10 +860,21 @@ class Model
             }
         }
     }
+
+    /**
+     * podstawowy przeciwnik, rusza sie na boki i potem dol, ma
+     * jedno zycie i na raz strzela tylko jedna rakieta
+     */
     private static class SmallFry extends Attacker
     {
-        public static final int radius;
-        public static final double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza wyniku
+         */
+        static final double weight;
         private static final double velocity;
         static
         {
@@ -598,6 +882,14 @@ class Model
             weight=0.1;
             velocity=1*Controller.SCALE;
         }
+
+        /**
+         * konstruktor ustawia dane tak jak mu sie je poda, oraz ustala stan poczatkowy
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         * @param ll limit x z lewej
+         * @param lr limit x z prawej
+         */
         SmallFry(int x, int y, int ll, int lr)
         {
             super(x, y, ll ,lr);
@@ -606,6 +898,11 @@ class Model
             spritenum=1;
             health=1;
         }
+
+        /**
+         * zasadnicza funkcja ruchu
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             if(direction) crdx+=i*velocity;
@@ -624,14 +921,39 @@ class Model
             }
             moverocket(i);
         }
+
+        /**
+         * @see Attacker
+         */
         public void reload() {shot=0; rockets=new Missile[1];}
+
+        /**
+         * @see Attacker
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * @see Attacker
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * przeciwnik troche szybszy niz smallfry, rusza sie 2x szybciej i ma 2 rakiety,
+     * ale nie rusza sie w dol
+     */
     private static class Runner extends Attacker
     {
-        public static final int radius;
-        public static final double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza punktow
+         */
+        static final double weight;
         private static final double velocity;
         static
         {
@@ -639,6 +961,14 @@ class Model
             weight=0.2;
             velocity=2*Controller.SCALE;
         }
+
+        /**
+         * konstruktor ustawia dane tak jak mu sie je poda, oraz ustala stan poczatkowy
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         * @param ll limit x z lewej
+         * @param lr limit x z prawej
+         */
         Runner(int x, int y, int ll, int lr)
         {
             super(x, y, ll ,lr);
@@ -647,6 +977,11 @@ class Model
             spritenum=2;
             health=1;
         }
+
+        /**
+         * zasadnicza funkcja ruchu
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             if(direction) crdx+=i*velocity;
@@ -663,14 +998,39 @@ class Model
             }
             moverocket(i);
         }
+
+        /**
+         * reset rakiet
+         */
         public void reload() {shot=0; rockets=new Missile[2];}
+
+        /**
+         * getter promienia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * Abnormal ma wiecej zycia niz Smallfry, strzela innym wzorem i porusza sie po skosie.
+     * Ma dodatkowo zmienna magazine, ktora pomaga czesciej strzelac
+     */
     private static class Abnormal extends Attacker
     {
-        public static final int radius;
-        public static double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza punktow
+         */
+        static double weight;
         private static final double velocity;
         private int magazine;
         static
@@ -679,6 +1039,15 @@ class Model
             weight=0.33;
             velocity=1*Controller.SCALE;
         }
+
+        /**
+         * konstruktor ustawia dane tak jak sie poda i ustala stan poczatkowy
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         * @param ll limit x z lewej
+         * @param lr limit x z prawej
+         * @param b kierunek w x
+         */
         Abnormal(int x, int y, int ll, int lr, boolean b)
         {
             super(x, y, ll, lr);
@@ -688,6 +1057,11 @@ class Model
             magazine=0;
             direction=b;
         }
+
+        /**
+         * zasadnicza funkcja ruchu
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             crdy+=velocity*i/6;
@@ -707,23 +1081,52 @@ class Model
             if(magazine>=50) shoot();
             moverocket(i);
         }
+
+        /**
+         * fukcja strzalu, wystrzeliwuje jede pocisk w dol i dwa po skosie w bok
+         */
         public void shoot()
         {
             magazine=0;
             if(shot>0) return;
-            rockets[2]=new Vertmissile(crdx, crdy, true, 1, direction);
-            rockets[1]=new Vertmissile(crdx, crdy, true, 1, !direction);
+            rockets[2]=new Diagmissile(crdx, crdy, true, 1, direction);
+            rockets[1]=new Diagmissile(crdx, crdy, true, 1, !direction);
             rockets[0]=new Missile(crdx, crdy, true);
             shot=3;
         }
+
+        /**
+         * reset pociskow
+         */
         public void reload() {shot=0; rockets=new Missile[3]; magazine=0;}
+
+        /**
+         * getter pormineia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * Thiccboy jest wiekszy niz Smallfry, ma wiecej zycia, inny wzor strzalow,
+     * ale porusza sie tak samo. Ma takze magazine jak ABnormal
+     */
     private static class Thiccboy extends Attacker
     {
-        public static final int radius;
-        public static final double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza punktow
+         */
+        static final double weight;
         private static final double velocity;
         private int magazine;
         static
@@ -732,6 +1135,14 @@ class Model
             weight=1.2;
             velocity=1*Controller.SCALE;
         }
+
+        /**
+         * konstruktor ustawia dane tak ja mu sie je poda i ustala stan poczatkowy
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         * @param ll limit x z lewej strony
+         * @param lr limit x z prawej strony
+         */
         Thiccboy(int x, int y, int ll, int lr)
         {
             super(x, y, ll ,lr);
@@ -741,6 +1152,11 @@ class Model
             spritenum=4;
             health=10;
         }
+
+        /**
+         * zasadnicza funkcja ruchu
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             if(direction) crdx+=i*velocity;
@@ -761,26 +1177,57 @@ class Model
             if(magazine>=50) shoot();
             moverocket(i);
         }
+
+        /**
+         * zasadnicza funkcja strzalu, wystrzeliwuje 4 pociski w dol i 2 po skosie w boki
+         */
         public void shoot()
         {
             if(magazine>0) magazine=0;
             if(shot>0) return;
-            rockets[0]=new Missile(crdx+radius/4, crdy+radius, true);
-            rockets[1]=new Missile(crdx-radius/4, crdy+radius, true);
-            rockets[2]=new Missile(crdx-radius/4, crdy, true);
-            rockets[3]=new Missile(crdx+radius/4, crdy, true);
-            rockets[4]=new Vertmissile(crdx+radius/4, crdy, true, 2, direction);
-            rockets[5]=new Vertmissile(crdx-radius/4, crdy, true, 2, !direction);
+            rockets[0]=new Missile(crdx+(float)radius/4, crdy+radius, true);
+            rockets[1]=new Missile(crdx-(float)radius/4, crdy+radius, true);
+            rockets[2]=new Missile(crdx-(float)radius/4, crdy, true);
+            rockets[3]=new Missile(crdx+(float)radius/4, crdy, true);
+            rockets[4]=new Diagmissile(crdx+(float)radius/4, crdy, true, 2, direction);
+            rockets[5]=new Diagmissile(crdx-(float)radius/4, crdy, true, 2, !direction);
             shot+=6;
         }
+
+        /**
+         * reset pociskow
+         */
         public void reload() {shot=0; rockets=new Missile[6]; magazine=0;}
+
+        /**
+         * getter promienia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * Hivewitch porusza sie jak RUnner, nie rusz sie w dol, ma wiecej zycia i
+     * zamiast strzalu przyzywa dodatkowe Smallfry do walki. Posiada takze zmienna
+     * magazine, ale takze mandate - mandate zabrania jej przyzywac przeciwnikow
+     * za czesto.
+     */
     private static class Hivewitch extends Attacker
     {
-        public static final int radius;
-        public static final double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza punktow
+         */
+        static final double weight;
         private static final double velocity;
         private int magazine, mandate;
         static
@@ -789,6 +1236,14 @@ class Model
             weight=2;
             velocity=1*Controller.SCALE;
         }
+
+        /**
+         * konstruktor ustawia zmienne tak jak mu sie poda i ustala stan poczatkowy.
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         * @param ll limit x z lewej
+         * @param lr limit x z prawej
+         */
         Hivewitch(int x, int y, int ll, int lr)
         {
             super(x, y, ll, lr);
@@ -798,6 +1253,11 @@ class Model
             health=10;
             mandate=200;
         }
+
+        /**
+         * zasadnicza funkcja ruchu
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             if(direction) crdx+=i*velocity;
@@ -816,6 +1276,10 @@ class Model
             magazine+=i;
             if(magazine>=400) shoot();
         }
+
+        /**
+         * funkcja strzalu - dodaje do queue 2 Smallfry
+         */
         public void shoot()
         {
             if(mandate>0) return;
@@ -824,14 +1288,39 @@ class Model
             queue.add(new SmallFry((int)crdx+radius*2, (int)crdy+radius*2, (0>crdx-SmallFry.radius*10)?0:(int) crdx-SmallFry.radius*10, (Controller.SIZE*2<crdx+SmallFry.radius*10)?Controller.SIZE*2:(int)crdx+SmallFry.radius*10));
             queue.add(new SmallFry((int)crdx-radius*2, (int)crdy+radius*2, (0>crdx-SmallFry.radius*10)?0:(int)crdx-SmallFry.radius*10, (Controller.SIZE*2<crdx+SmallFry.radius*10)?Controller.SIZE*2:(int)crdx+SmallFry.radius*10));
         }
+
+        /**
+         * nic
+         */
         public void reload() {}
+
+        /**
+         * getter promienia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * porusza sie jak Runner - nie idzie w dol. Strzela laserem, jest duzy i ma duzo zycia.
+     * Posiada magazine, ale takze counter - timer animacji.
+     */
     private static class Laserboy extends Attacker
     {
-        public static final int radius;
-        public static final double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza punktow
+         */
+        static final double weight;
         private static final double velocity;
         private int magazine, counter;
         static
@@ -840,6 +1329,15 @@ class Model
             weight=0.75;
             velocity=1*Controller.SCALE;
         }
+
+        /**
+         * konstruktor ustawia dane tak jak mu sie poda i ustala stan poczatkowy
+         * @param x wspolrzedna x
+         * @param y wspolrzenda y
+         * @param ll limit x z lewej
+         * @param lr limit x z prawej
+         * @param b kierunek ruchu
+         */
         Laserboy(int x, int y, int ll, int lr, boolean b)
         {
             super(x, y, ll, lr);
@@ -850,6 +1348,11 @@ class Model
             health=5;
             counter=0;
         }
+
+        /**
+         * zasdnicza funkcja ruchu, zawiera sie w niej rowniez automat sterujacy animacja.
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             if(direction) crdx+=i*velocity;
@@ -882,6 +1385,10 @@ class Model
                 counter=0;
             }
         }
+
+        /**
+         * funkcja pomocna automatu strzalu
+         */
         public void shoot()
         {
             magazine=0;
@@ -890,19 +1397,52 @@ class Model
                 spritenum=-6;
             }
         }
+
+        /**
+         * zwraca pocisk z lsity na indeksie k, w tym przypadku sa 3 pociski na samym dole laseru
+         * @param k indeks na liscie
+         * @return nowy pocisk wygenerowany na potrzeby laseru
+         */
         public Missile extract(int k)
         {
             if(spritenum!=-66) return null;
-            return new Missile(crdx+(k-1)*radius/2, Ship.HEIGHT, true);
+            return new Missile(crdx+(k-1)*(float)radius/2, Ship.HEIGHT, true);
         }
+
+        /**
+         * reset laseru
+         */
         public void reload() {magazine=0; counter=0; spritenum=6; shot=0;}
+
+        /**
+         * getter promienia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * Lamp porusza sie po kole, ma wokol siebie takze krazace, strzelajace Moth'y.
+     * Ma dodatkowo zmienna orbit - promien suchu, angle - pozycje na kole, startx,
+     * starty - wspolrzedne srodka kola, oraz magazine. Nie moze strzelac, ale moze
+     * wskrzeszac swoje Moth'y.
+     */
     private static class Lamp extends Attacker
     {
-        public static final int radius;
-        public static final double weight;
+        /**
+         * promien
+         */
+        static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza punktow
+         */
+        static final double weight;
         private static final double velocity;
         private static final int orbit;
         private Moth[] minions=new Moth[3];
@@ -915,6 +1455,14 @@ class Model
             velocity=1*Controller.SCALE;
             orbit=(int) (175*Controller.SCALE);
         }
+
+        /**
+         * konstruktor ustawia dane tak jak sie je poda, i ustala stan poczatkowy
+         * @param x wsporlzedna x srodka kola
+         * @param y wspolrzedna y srodka kola
+         * @param b kierunek ruchu
+         * @param a pozycja w radianach na kole
+         */
         Lamp(int x, int y, boolean b, double a)
         {
             magazine=0;
@@ -932,6 +1480,11 @@ class Model
                 list.add(minions[i]);
             }
         }
+
+        /**
+         * zasadnicza funkcja ruchu po kole
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             angle+=(direction)?i*velocity*Math.PI/180:-i*velocity*Math.PI/180;
@@ -945,6 +1498,10 @@ class Model
             magazine+=i;
             if(magazine>=100) shoot();
         }
+
+        /**
+         * funkcja strzalu, ewentualnie wskrzesza upadle Moth'y
+         */
         public void shoot()
         {
             magazine=0;
@@ -954,14 +1511,40 @@ class Model
                 m.shoot();
             }
         }
+
+        /**
+         * nic
+         */
         public void reload() {}
+
+        /**
+         * getter promienia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
+
+    /**
+     * Moth porusza sie po okregu podobnie jak Lamp, ale moze strzelac, ma
+     * 2 rakiety oraz ma dodatkowo opcje zmiany srodka okregu po ktorym sie
+     * porusza. Moze takze zostac wskrzeszona.
+     */
     private static class Moth extends Attacker
     {
-        public static final double weight;
-        public static final int radius;
+        /**
+         * zmienna orientacyjna generatora i zasadnicza punktow
+         */
+        static final double weight;
+        /**
+         * promien
+         */
+        static final int radius;
         private static final double velocity;
         private double angle;
         private int startx, starty, orbit;
@@ -971,6 +1554,15 @@ class Model
             weight=0;
             velocity=1*Controller.SCALE;
         }
+
+        /**
+         * konstruktor ustawia dane jak mu sie poda i ustala stan poczatkowy
+         * @param x wspolrzedna x srodka okregu
+         * @param y wspolrzedna y srodka okregu
+         * @param a pozycja w kacie w radianach na okregu
+         * @param b kierunek ruchu
+         * @param o dlugosc orbity
+         */
         Moth(int x, int y, double a, boolean b, int o)
         {
             rockets=new Missile[2];
@@ -985,6 +1577,11 @@ class Model
             health=1;
             angle=a;
         }
+
+        /**
+         * zasadnicza funkcja ruchu po okregu
+         * @param i dlugosc kroku
+         */
         public void movement(int i)
         {
             angle+=(direction)?i*velocity*Math.PI/180:-i*velocity*Math.PI/180;
@@ -992,14 +1589,38 @@ class Model
             crdy=starty+orbit*Math.sin(angle);
             if(!isgone()) moverocket(i);
         }
-        public void res() {health=1;queue.add(this); reload();}
-        public void movement(double x, double y)
+
+        /**
+         * wskrzeszanie, dodaje sie do queue
+         */
+        void res() {health=1;queue.add(this); reload();}
+
+        /**
+         * funkcja zmiany srodka okregu po ktorym sie porusza
+         * @param x wspolrzedna x
+         * @param y wspolrzedna y
+         */
+        void movement(double x, double y)
         {
             startx+=x-startx;
             starty+=y-starty;
         }
+
+        /**
+         * reset pociskow
+         */
         public void reload() {shot=0; rockets=new Missile[2];}
+
+        /**
+         * getter promienia
+         * @return promien
+         */
         public int getr(){return radius;}
+
+        /**
+         * getter punktow
+         * @return liczba punktow
+         */
         public double getscore(){return 10*weight;}
     }
     private static class Glitch extends Attacker
@@ -1043,7 +1664,7 @@ class Model
         {
             if(magazine<=250) magazine=0;
             if(shot>=rockets.length) return;
-            rockets[shot]=new Vertmissile(crdx, crdy, true, Math.abs(((double) Ship.HEIGHT-(double) crdy)/((double) ship.getx()-(double) crdx)), ship.getx()>crdx);
+            rockets[shot]=new Diagmissile(crdx, crdy, true, Math.abs(((double)Ship.HEIGHT-crdy)/((double)ship.getx()-crdx)), ship.getx()>crdx);
             shot++;
         }
         public void reload() {shot=0; rockets=new Missile[1];}
@@ -1056,7 +1677,7 @@ class Model
         public static double weight;
         private enum Attack {hive, laser, barrage, blank}
         Attack attack;
-        private Vector<Missile> rockets;
+        private Vector<Missile> rockets = new Vector<>();
         private static double velocity;
         private double random;
         private int magazine, center, counter, countdown, minions;
@@ -1090,7 +1711,7 @@ class Model
             velocity=0;
             if(evolve()%100>=85)
             {
-                rockets.add(new Vertmissile(crdx+evolve()%(radius*2+1)-radius, crdy, true, 5000/(double) evolve(),evolve()%2==1));
+                rockets.add(new Diagmissile(crdx+evolve()%(radius*2+1)-radius, crdy, true, 5000/(double) evolve(),evolve()%2==1));
                 shot++;
             }
             counter+=i;
@@ -1132,7 +1753,6 @@ class Model
         Gargantua(int x, int y, int ll, double ctr)
         {
             super(x, y, ll, x-ll+radius);
-            rockets=new Vector<>();
             spritenum=10;
             health=100;
             random=ctr;
@@ -1197,7 +1817,7 @@ class Model
         {
             if(shot==0||(k>=shot&&attack!=Attack.laser)) return null;
             if(k<rockets.size()) return rockets.get(k);
-            return new Missile(crdx-radius+(k-rockets.size())* (radius/7) + (k/3) * (radius/7), Ship.HEIGHT, true);
+            return new Missile(crdx-radius+(k-rockets.size())*((float)radius/7)+((float)k/3)*((float)radius/7), Ship.HEIGHT, true);
         }
         protected void moverocket(int i)
         {
@@ -1210,7 +1830,6 @@ class Model
                     rockets.remove(j);
                     j--;
                     shot--;
-                    continue;
                 }
             }
         }
