@@ -7,7 +7,7 @@ import java.awt.event.*;
  * buttony odpowiadajace za logike menu, i stale globalne wielkosci okna, stosunku
  * wysokosci do polowy dlugosci okna i skale okna zalezna od rozdzielczosci monitora.
  */
-class Controller
+public class Controller
 {
     private View view;
     private Model model;
@@ -62,7 +62,7 @@ class Controller
     /**
      * zasadnicza petla programu, jej opuszczenie nastepuje za zamknieciem okna
      * badz System.quit().
-     * @param args
+     * @param args args
      */
     public static void main(String args[])
     {

@@ -9,7 +9,7 @@ import java.io.*;
  * gdzie i co nalezy wyswietlic. Jest Jpanele i zawiera w sobie Jframes menu oraz
  * gry i odpowiednie labele. Button back jest tu z powodow czysto estetycznych.
  */
-class View extends JPanel
+public class View extends JPanel
 {
     private Image sprite0, sprite1, sprite2, sprite3, sprite4, sprite5, sprite6, sprite7, sprite8, sprite9, splinteredsprite9, Gargantua, backdrop;
     private int[][] positions;
@@ -221,7 +221,7 @@ class View extends JPanel
         {
             levellab.setLocation(220, 100);
             scorelab.setLocation(220, 130);
-            if(level>0) temp.setLocation(210, 0);
+            if(temp!=null&&temp.getText()=="Game Over") temp.setLocation(210, 0);
             if(back!=null) back.setLocation(220, 50);
         }
         else

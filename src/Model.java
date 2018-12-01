@@ -9,7 +9,7 @@ import java.util.*;
  * przeciwnikow. freemiss jest lista pociskow nieprzypisanych do przeciwnika.
  * queue jest lista przeciwnikow czekajacych na dodanie do listy zasadniczej.
  */
-class Model
+public class Model
 {
     private boolean pause;
     private int difficulty, lives, stage;
@@ -458,7 +458,7 @@ class Model
 
     /**
      * logika statku na zasadzie automatu stanow
-     * @param j klikniecie strzalki (<0 to w lewo, >0 to w prawo, 1 to klik, 2 to release)
+     * @param j klikniecie strzalki (mniej niz 0 to w lewo, wiecej niz 0 to w prawo, 1 to klik, 2 to release)
      */
     void logic(int j) {if(ship!=null&&!pause) ship.logic(j);}
 
@@ -574,7 +574,7 @@ class Model
 
         /**
          * automat stanow ruchu statku
-         * @param j id eventu: <0 w lewo, >0 w prawo, 1 - wcisnieto, 2 - wypuszcono
+         * @param j id eventu: mniej niz 0 w lewo, wiecej niz 0 w prawo, 1 - wcisnieto, 2 - wypuszcono
          */
         void logic(int j)
         {
